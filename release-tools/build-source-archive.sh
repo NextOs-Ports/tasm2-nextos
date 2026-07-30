@@ -200,7 +200,7 @@ esac
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
 [ -n "$BOX64_PATCH" ] ||
   BOX64_PATCH="$SCRIPT_DIR/box64-x5m-s7d.patch"
-GCC_EXCEPTION="$SCRIPT_DIR/GCC-Runtime-Library-Exception-3.1.txt"
+GCC_EXCEPTION="$SCRIPT_DIR/../licenses/GCC-Runtime-Library-Exception-3.1.txt"
 
 BOX64_PATCH=$(readlink -f -- "$BOX64_PATCH") ||
   fail "could not resolve Box64 patch"
