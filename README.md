@@ -2,9 +2,10 @@
 
 **Language / Idioma:** [English](#english) · [Português](#português)
 
-**Package release / Versão do pacote:** 1.1.3
+**Package release / Versão do pacote:** 1.1.4
 
 [Download the latest `asm2.zip`](https://github.com/NextOs-Ports/tasm2-nextos/releases/latest) ·
+[Installation / Instalação](INSTALLATION.md) ·
 [NXExtract](https://github.com/NextOs-Ports/NXExtract) ·
 [Complete loader architecture / Arquitetura completa](asm2_127/README.md)
 
@@ -69,15 +70,26 @@ The X5M runtime is intentionally rejected on other AArch64 SoCs.
 
 ### Install with your own Android data
 
+> **This is not an APK-only game.** The complete installation requires exactly
+> one Android 1.2.7d APK **plus all three cache/OBB files** listed below. Do not
+> unpack the OBB files.
+
 1. Download `asm2.zip` from the
    [latest release](https://github.com/NextOs-Ports/tasm2-nextos/releases/latest)
    and extract it at the storage root that contains the firmware's `ports/`
    directory.
 2. Put the exact Android 1.2.7d APK (`versionCode 12723`) in
    `ports/asm2_127/gamedata/`.
-3. Put the three matching OBB files there too. They may be loose files or
-   members of one ZIP, and their external names do not matter.
+3. Put these three matching cache files in the same directory:
+   - `main.12032.com.gameloft.android.ANMP.GloftASHM.obb`
+   - `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb`
+   - `patch.12723.com.gameloft.android.ANMP.GloftASHM.obb`
 4. Launch **The Amazing Spider-Man 2**.
+
+The recommended layout is four loose files: one APK plus three untouched OBBs.
+NXExtract can identify supported inputs by content even when an external
+filename differs, but it cannot replace a missing cache file. See the complete
+[bilingual installation guide](INSTALLATION.md).
 
 [NXExtract](https://github.com/NextOs-Ports/NXExtract) identifies content
 instead of trusting names. It validates the exact APK and OBB hashes, rebuilds
@@ -151,14 +163,25 @@ como testes físicos. A rota X5M é recusada em outros SoCs AArch64.
 
 ### Instalação com seus próprios dados Android
 
+> **Este jogo não funciona somente com o APK.** A instalação completa exige
+> exatamente um APK Android 1.2.7d **mais os três arquivos de cache/OBB**
+> listados abaixo. Não extraia o conteúdo dos OBBs.
+
 1. Baixe `asm2.zip` na
    [release mais recente](https://github.com/NextOs-Ports/tasm2-nextos/releases/latest)
    e extraia-o na raiz do armazenamento que contém a pasta `ports/`.
 2. Coloque o APK Android 1.2.7d exato (`versionCode 12723`) em
    `ports/asm2_127/gamedata/`.
-3. Coloque também os três OBBs correspondentes. Eles podem estar soltos ou
-   dentro de um ZIP; os nomes externos não importam.
+3. Coloque na mesma pasta estes três arquivos de cache:
+   - `main.12032.com.gameloft.android.ANMP.GloftASHM.obb`
+   - `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb`
+   - `patch.12723.com.gameloft.android.ANMP.GloftASHM.obb`
 4. Abra **The Amazing Spider-Man 2**.
+
+A organização recomendada são quatro arquivos soltos: um APK e os três OBBs
+intactos. O NXExtract reconhece os insumos suportados pelo conteúdo mesmo que
+um nome externo seja diferente, mas não substitui nenhum cache ausente.
+Consulte o [guia bilíngue completo](INSTALLATION.md).
 
 O [NXExtract](https://github.com/NextOs-Ports/NXExtract) reconhece conteúdo em
 vez de confiar em nomes. Ele valida os hashes exatos, reconstrói um APK runtime
@@ -196,8 +219,8 @@ o perfil novo concluir esse fluxo.
 - [`patches/`](patches/) — exact downstream Box32 and NXExtract patches.
 - [`third_party/`](third_party/) — pinned corresponding source for Box64/Box32
   and `sdl2-compat`.
-- [`SOURCE-PROVENANCE.json`](SOURCE-PROVENANCE.json) and
-  [`SHA256SUMS`](SHA256SUMS) — revisions, hashes and reproducibility record.
+- Each release's corresponding-source archive contains its generated
+  `SOURCE-PROVENANCE.json` and complete `SHA256SUMS` reproducibility record.
 
 The release carries the deterministic corresponding-source archive as a
 separate asset. The same tree is published here for normal browsing and

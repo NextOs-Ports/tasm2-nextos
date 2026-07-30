@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.4
+
+- Clarifies everywhere that the game is not APK-only: installation requires
+  one exact Android 1.2.7d APK plus the complete three-file OBB cache.
+- Adds a bilingual `INSTALLATION.md` inside the port and lists the exact
+  `main.12032`, `patch.12438` and `patch.12723` filenames.
+- Tells users to leave the OBB files intact in `gamedata`; no runtime binary,
+  extractor recipe or generated-data contract changed from 1.1.3.
+
 ## 1.1.3
 
 - Keeps the packaged X5M `sdl2-compat` private to the Box32 game process.

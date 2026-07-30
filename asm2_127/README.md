@@ -233,6 +233,16 @@ This repository contains only the loader source and launcher. It does **not**
 ship Gameloft's APK, `libtasm2.so`, OBB files, assets or other copyrighted game
 content. You must own and supply the exact Google Play Android 1.2.7d files.
 
+This is **not an APK-only game**. The complete input is one exact 1.2.7d APK
+plus all three intact cache files:
+
+- `main.12032.com.gameloft.android.ANMP.GloftASHM.obb`
+- `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb`
+- `patch.12723.com.gameloft.android.ANMP.GloftASHM.obb`
+
+Place the APK and all three OBBs as four loose files in
+`ports/asm2_127/gamedata/`. Do not unpack the OBB contents.
+
 Reference input identifiers:
 
 | File | SHA-256 |
@@ -619,6 +629,16 @@ Este repositório contém somente o código do loader e o launcher. Ele **não**
 distribui o APK da Gameloft, `libtasm2.so`, OBBs, assets ou qualquer outro
 conteúdo protegido do jogo. Você precisa possuir e fornecer os arquivos exatos
 da versão Google Play Android 1.2.7d.
+
+Este jogo **não é APK único**. O conjunto completo tem um APK 1.2.7d exato
+mais os três arquivos de cache intactos:
+
+- `main.12032.com.gameloft.android.ANMP.GloftASHM.obb`
+- `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb`
+- `patch.12723.com.gameloft.android.ANMP.GloftASHM.obb`
+
+Coloque o APK e os três OBBs como quatro arquivos soltos em
+`ports/asm2_127/gamedata/`. Não extraia o conteúdo dos OBBs.
 
 Identificadores dos insumos de referência:
 

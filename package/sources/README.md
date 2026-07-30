@@ -2,7 +2,7 @@
 
 **Language / Idioma:** [English](#english) · [Português](#português)
 
-**Package release / Versão do pacote:** 1.1.3
+**Package release / Versão do pacote:** 1.1.4
 
 This is an independent clean-room compatibility loader. It does not distribute
 the APK, either native game library, OBB files, audio or other executable game
@@ -48,12 +48,20 @@ The X5M runtime is intentionally rejected on other AArch64 SoCs.
 
 ### Install with your own Android data
 
-1. Extract `asm2.zip` into the firmware's ports directory.
-2. Put the exact Android 1.2.7d APK (`versionCode 12723`) in
-   `asm2_127/gamedata/`.
-3. Put the three matching OBB files there too. They may be loose files or
-   members of one ZIP, and their external names do not matter.
-4. Launch **The Amazing Spider-Man 2**.
+**This is not an APK-only game.** It requires one exact Android 1.2.7d APK
+(`versionCode 12723`) plus all three cache/OBB files. Do not unpack the OBBs.
+
+1. Extract `asm2.zip` at the storage root that contains `ports/`.
+2. Put the APK in `ports/asm2_127/gamedata/`.
+3. Put these three untouched files in the same directory:
+   - `main.12032.com.gameloft.android.ANMP.GloftASHM.obb`
+   - `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb`
+   - `patch.12723.com.gameloft.android.ANMP.GloftASHM.obb`
+4. Launch **The Amazing Spider-Man 2** and let NXExtract finish.
+
+The recommended input layout is four loose files. NXExtract identifies
+supported data by content even when an external filename differs, but a
+missing APK or cache file cannot be reconstructed. See `INSTALLATION.md`.
 
 NXExtract identifies content instead of trusting names. It validates the exact
 APK and OBB hashes, rebuilds a standards-compliant runtime APK from the known
@@ -126,12 +134,21 @@ como testes físicos. A rota X5M é recusada em outros SoCs AArch64.
 
 ### Instalação com seus próprios dados Android
 
-1. Extraia `asm2.zip` na pasta de ports do sistema.
-2. Coloque o APK Android 1.2.7d exato (`versionCode 12723`) em
-   `asm2_127/gamedata/`.
-3. Coloque também os três OBBs correspondentes. Eles podem estar soltos ou
-   dentro de um ZIP; os nomes externos não importam.
-4. Abra **The Amazing Spider-Man 2**.
+**Este jogo não é APK único.** Ele exige um APK Android 1.2.7d exato
+(`versionCode 12723`) mais os três arquivos de cache/OBB. Não descompacte os
+OBBs.
+
+1. Extraia `asm2.zip` na raiz do armazenamento que contém `ports/`.
+2. Coloque o APK em `ports/asm2_127/gamedata/`.
+3. Coloque na mesma pasta estes três arquivos intactos:
+   - `main.12032.com.gameloft.android.ANMP.GloftASHM.obb`
+   - `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb`
+   - `patch.12723.com.gameloft.android.ANMP.GloftASHM.obb`
+4. Abra **The Amazing Spider-Man 2** e aguarde o NXExtract terminar.
+
+A organização recomendada são quatro arquivos soltos. O NXExtract identifica
+os dados suportados pelo conteúdo mesmo se um nome externo for diferente, mas
+não consegue reconstruir um APK ou cache ausente. Consulte `INSTALLATION.md`.
 
 O NXExtract reconhece conteúdo em vez de confiar em nomes. Ele valida os hashes
 exatos, reconstrói um APK runtime normal a partir do pacote-fonte danificado,

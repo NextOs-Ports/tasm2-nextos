@@ -122,6 +122,7 @@ for relative in \
   BUILD-PROVENANCE.json \
   CHANGELOG.md \
   CLEANROOM.md \
+  INSTALLATION.md \
   NOTICE.md \
   README.md \
   extractor.json \

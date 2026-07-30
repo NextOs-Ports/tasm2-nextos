@@ -13,7 +13,7 @@
     ],
     "desc": "Clean-room BYO-data loader for The Amazing Spider-Man 2 Android 1.2.7d. Includes proven ARMHF routes plus a scoped AArch64 X5M/Box32 route, native controls and audio, persistent saves, the original first-run flow and transactional setup. Executable game data is not included.",
     "desc_md": null,
-    "inst": "Place a legally owned Android 1.2.7d APK and all three matching OBB files, loose or inside a ZIP, in asm2_127/gamedata and launch once. NXExtract validates and prepares them automatically.",
+    "inst": "This is not APK-only. Put the legal Android 1.2.7d APK plus all three untouched cache files (main.12032, patch.12438 and patch.12723 OBB) in asm2_127/gamedata. Do not unpack the OBBs. Launch once; NXExtract validates and prepares all four inputs.",
     "inst_md": null,
     "genres": [
       "action",
