@@ -464,7 +464,7 @@ if game.findtext("image") != "./asm2_127/screenshot.png":
 
 with open(sys.argv[3], encoding="utf-8") as stream:
     provenance = json.load(stream)
-if provenance.get("package_version") != "1.1.3":
+if provenance.get("package_version") != "1.1.4":
     raise SystemExit("build provenance package version is invalid")
 with open(sys.argv[4], encoding="utf-8") as stream:
     package_version = stream.read().strip()
