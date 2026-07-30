@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "package_version": "1.1.3",
+  "target_game": {
+    "android_version_name": "1.2.7d",
+    "android_version_code": 12723,
+    "package": "com.gameloft.android.ANMP.GloftASHM"
+  },
+  "loaders": {
+    "bin/asm2-nextos-armhf": {
+      "abi": "ELF32 ARM EABI5 hard-float",
+      "build_profile": "current NextOS Amlogic-old ARMHF sysroot",
+      "maximum_glibc": "2.43",
+      "sha256": "14bdb04a7e908d7c3d03fe0dbe89eb29359b8374e23d582d0a48498f79d09016"
+    },
+    "bin/asm2-portmaster-armhf": {
+      "abi": "ELF32 ARM EABI5 hard-float",
+      "build_profile": "Debian Buster ARMHF compatibility build",
+      "maximum_glibc": "2.27",
+      "sha256": "6297e7ad1fb296048db21e9105f4b76619ecfa2a6f873286dc35abe6a72bd044"
+    },
+    "asm2_127_x86_box32": {
+      "abi": "ELF32 i386 System V executable for Box32",
+      "build_profile": "GCC -m32 release with static libgcc, corrected lazy-resolver ABI alignment and strip --strip-unneeded",
+      "maximum_glibc": "2.38",
+      "size": 208856,
+      "build_id": "23c6519da8299329f06d22935a791422e22835ec",
+      "sha256": "4c5b49ca7639ca7bbea4433793fb8defecd63c1ec304feb9703002a9000fc86d",
+      "license": "GPL-3.0-only",
+      "release_status": "validated"
+    },
+    "rejected-fd6/asm2_127_x86_box32": {
+      "abi": "ELF32 i386 System V executable for Box32",
+      "build_profile": "GCC -m32 release with static libgcc and strip --strip-unneeded",
+      "maximum_glibc": "2.38",
+      "size": 208856,
+      "build_id": "a4982da46df3f5c106bfc786c95ba5f6e9e770fa",
+      "sha256": "fd6b48f4d89b1b9ff67af2cb34a67a4e61d7259eed34e52c781ff91a85481b8d",
+      "license": "GPL-3.0-only",
+      "release_status": "rejected",
+      "rejection_reason": "incorrect i386 stack alignment at the lazy ASM-to-C resolver boundary"
+    }
+  },
+  "nxextract": {
+    "upstream_version": "1.1.2",
+    "upstream_commit": "8229cc857467e8641e7e2d6021c6a9bdea63afbf",
+    "downstream_revision": "1.1.2-asm2.1",
+    "downstream_change": "preserve sniffed extensionless non-ZIP inputs as loose candidates",
+    "ui_sha256": "046afb583f5a211c946495e639409f81d9cfec706788eeccb7924b0e8e5a50b6",
+    "ui_maximum_glibc": "2.17"
+  },
+  "recipe": {
+    "id": "asm2-127",
+    "version": "1.2.7d-3",
+    "file_sha256": "5813fdb8e819f745cf625561a8af99f2bc63cd0d0f51cea81a68c243a0152a41",
+    "nxextract_digest": "63ae6af29d0ce8958ce369263780c27123ccfd0d2e9f0eefd09e390dae772978"
+  },
+  "x5m_runtime": {
+    "selection_scope": {
+      "host_architecture": "aarch64",
+      "operating_system": "NextOS",
+      "device_tree_compatible": "amlogic,s7d",
+      "tested_marketing_model": "X5M",
+      "tested_gpu": "Mali-G310 r44p0",
+      "notes": "The S7D compatible signature is the narrowest stable pre-context identifier exposed by the tested board."
+    },
+    "runtime/x5m/box64": {
+      "component": "Box64 built with BOX32=ON",
+      "upstream": "https://github.com/ptitSeb/box64",
+      "upstream_commit": "3ec5de03c786333ed8d5a51c5b35a8bd6e22b229",
+      "downstream_patch_sha256": "4d1042b5fadd1a5ad16b47882c62d79aae12f10c450ede84b81bf079f3ef6ad7",
+      "abi": "ELF64 AArch64",
+      "maximum_glibc": "2.43",
+      "size": 25720640,
+      "build_id": "993190f7bb2c8c6326d5e9d9ad893a941084551b",
+      "sha256": "48571604ccfb9399c6abba06349887d724dd23b5e8d80d4ac129c3acc39e405e",
+      "license": "MIT",
+      "release_status": "validated"
+    },
+    "runtime/x5m/native/libSDL2-2.0.so.0": {
+      "component": "sdl2-compat 2.32.71 over system SDL3",
+      "upstream": "https://github.com/libsdl-org/sdl2-compat",
+      "upstream_commit": "3e1fa90d301428ace65d5c8b371e93d2c59c3d65",
+      "version": "2.32.71",
+      "embedded_version_string": "SDL-2.32.71-gacc2cc1",
+      "embedded_version_note": "acc2cc1 is the surrounding parent-tree revision observed by CMake, not an upstream sdl2-compat commit",
+      "abi": "ELF64 AArch64 shared object",
+      "maximum_glibc": "2.34",
+      "size": 467752,
+      "build_id": "0dfade075d971c3e24a50fbb4545c37eb0794fed",
+      "sha256": "eae4f55286eb9f888302878fa18d6a9d21f61bee9e1678d0991fa25f6ac207d5",
+      "license": "Zlib"
+    },
+    "validation": {
+      "component_bytes_frozen": true,
+      "host_runtime_bytes_frozen": true,
+      "i386_loader_bytes_frozen": true,
+      "real_x5m_gameplay": true,
+      "corresponding_source_release_mode": true,
+      "deterministic_public_and_source_archives": true,
+      "host_reinstall_update_preservation": true,
+      "x5m_full_extraction_and_fast_path": true,
+      "x5m_extractor_firmware_sdl_kmsdrm_physical": true,
+      "mali450_full_extraction_and_exact_package_smoke": true,
+      "r36s_full_extraction_and_exact_package_smoke": true,
+      "box32_condition_stress": "3/3 runs, 256 cycles each",
+      "dynarec_safety_profile": {
+        "BOX64_DYNAREC": "1",
+        "BOX64_DYNAREC_BIGBLOCK": "0",
+        "BOX64_DYNAREC_SAFEFLAGS": "2",
+        "scope": "configure_x5m_runtime only",
+        "real_gameplay_1920x1080": true,
+        "long_run_frames": 11034,
+        "reopen_run_frames": 6213,
+        "save_create_update_reload": true,
+        "save_term_reopen_rc0": true,
+        "audio_failures": 0,
+        "physical_controller": true,
+        "experimental_eager_mode": false
+      },
+      "universal_release_gate": "passed"
+    }
+  },
+  "owner_extracted_x86_library": {
+    "path": "libtasm2-x86.so",
+    "abi": "ELF32 i386 shared object",
+    "size": 32152072,
+    "sha256": "d146d38574c19a105df8a46e523f626c06004c8f71bbeed5cf77e919dbf81a12",
+    "included_in_public_zip": false
+  }
+}
