@@ -230,6 +230,16 @@ O release também traz o arquivo determinístico de fontes correspondentes como
 asset separado. Esta mesma árvore está publicada aqui para consulta,
 desenvolvimento e reprodução do build.
 
+## Support / Suporte
+
+Community support is handled on the
+[NextOS Discord](https://discord.gg/vQH2ahS29). The same support link is also
+available from the maintainer's GitHub profile/projects.
+
+O suporte da comunidade é feito no
+[Discord da NextOS](https://discord.gg/vQH2ahS29). O mesmo link de suporte
+também está disponível no perfil e nos projetos GitHub do mantenedor.
+
 ## Licenses / Licenças
 
 The compatibility loader and its helpers are GPL-3.0. NXExtract and Box64 are
