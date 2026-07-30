@@ -233,11 +233,11 @@ desenvolvimento e reprodução do build.
 ## Support / Suporte
 
 Community support is handled on the
-[NextOS Discord](https://discord.gg/vQH2ahS29). The same support link is also
+[NextOS Discord](https://discord.com/invite/DHfY62eDNN). The same support link is also
 available from the maintainer's GitHub profile/projects.
 
 O suporte da comunidade é feito no
-[Discord da NextOS](https://discord.gg/vQH2ahS29). O mesmo link de suporte
+[Discord da NextOS](https://discord.com/invite/DHfY62eDNN). O mesmo link de suporte
 também está disponível no perfil e nos projetos GitHub do mantenedor.
 
 ## Licenses / Licenças
