@@ -2,97 +2,150 @@
 
 ## English
 
-### Required game data
+### Supported owner inputs
 
-**The Amazing Spider-Man 2 1.2.7d is not an APK-only game.** A complete
-installation needs exactly four owner-supplied input files:
+NXExtract identifies files by their contents, not by their external names.
+Release 1.1.5 accepts these exact Android containers:
 
-1. one Android APK with `versionName 1.2.7d`, `versionCode 12723` and package
-   `com.gameloft.android.ANMP.GloftASHM`;
-2. `main.12032.com.gameloft.android.ANMP.GloftASHM.obb`;
-3. `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb`;
-4. `patch.12723.com.gameloft.android.ANMP.GloftASHM.obb`.
+| Android input | SHA-256 | Runtime scope |
+|---|---|---|
+| 1.2.7d APK, recovery ZIP layout | `4188a463432b921dfb767a3ddf316e970655789a7bdf806298757f45071a8c87` | ARMv7 + x86 |
+| 1.2.7d APK, standard ZIP layout | `2878fec3235a91a0487ee0a3ffdbcb5c534e0d052a573941a10489024b2b1868` | ARMv7 + x86 |
+| 1.2.8d APK | `6211d194cb06c6cbb32c2491adef59554eef4d97763a2fbc1e4bbb52d9fcae9b` | ARMv7 + x86 |
+| 1.2.8d self-contained installer | `42d1a3ac86708549fb425b8e36338ece56ea384fb2e30062c7a7da6ca34689e3` | ARM32/multilib only |
 
-Do not unpack or modify the OBB files. An APK without the complete three-file
-cache is insufficient.
+The matching companion cache ZIP is also accepted intact:
+
+`23f3ef198f731fa1af0f2dfce4902e510dc4bf57edc3a3524e8986b2a4bcc770`
+
+The self-contained installer already carries the required expansions. For any
+loose APK, supply the cache ZIP above or the two required OBBs below. Do not
+unpack or modify an OBB.
+
+| Expansion | Requirement | SHA-256 |
+|---|---|---|
+| `main.12032.com.gameloft.android.ANMP.GloftASHM.obb` | required | `276c413051b3349e7738afb23521f972d085a186cb22ab18db230906aab46981` |
+| `patch.12723.com.gameloft.android.ANMP.GloftASHM.obb` | required | `0faae1e92ab998b8808e3984e4cdafbe732a87c26da58a44ad11c633e643cb80` |
+| `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb` | optional | `58d9ed565ad67ee7362a2376a74387316535975460110eccf3df7eb3b6503981` |
+
+The X5M/Box32 route requires one of the three universal APK profiles. The
+self-contained installer is deliberately rejected there because it has no x86
+game library.
 
 ### Directory layout
 
 1. Extract `asm2.zip` at the storage root that contains the firmware's
    `ports/` directory.
-2. Copy the APK and all three intact OBBs into
+2. Copy one supported input set into
    `ports/asm2_127/gamedata/`.
 
-The recommended layout is:
+A loose APK plus the companion cache ZIP:
 
 ```text
 ports/
 └── asm2_127/
     └── gamedata/
-        ├── your-1.2.7d-copy.apk
+        ├── your-supported-copy.apk
+        └── matching-cache.zip
+```
+
+Or a loose APK plus intact OBBs:
+
+```text
+ports/
+└── asm2_127/
+    └── gamedata/
+        ├── your-supported-copy.apk
         ├── main.12032.com.gameloft.android.ANMP.GloftASHM.obb
-        ├── patch.12438.com.gameloft.android.ANMP.GloftASHM.obb
         └── patch.12723.com.gameloft.android.ANMP.GloftASHM.obb
 ```
 
+The optional `patch.12438` may be placed beside them. For the ARM32-only
+self-contained installer, place that one file in `gamedata`.
+
 3. Launch **The Amazing Spider-Man 2** from Ports.
-4. Let NXExtract validate and prepare all four inputs. The first preparation
+4. Let NXExtract validate and prepare the inputs. The first preparation
    processes more than 1 GiB and can take several minutes on old storage.
 5. If the original legal screen appears, press one face/action button once.
 
 NXExtract validates content rather than trusting external names. A renamed
-supported input can still be recognized, but no missing APK or OBB can be
-recreated. Wrong, incomplete, truncated or corrupt inputs are rejected before
-the transactional install is published.
+supported input can still be recognized. Wrong, incomplete, truncated or
+corrupt inputs are rejected before the transactional install is published.
 
 Internet access is not required. Updates preserve `gamedata`, saves,
 preferences and cache.
 
 ## Português
 
-### Dados obrigatórios do jogo
+### Dados do usuário suportados
 
-**The Amazing Spider-Man 2 1.2.7d não é um jogo de APK único.** A instalação
-completa exige exatamente quatro arquivos fornecidos pelo proprietário:
+O NXExtract identifica os arquivos pelo conteúdo, não pelo nome externo. A
+release 1.1.5 aceita estes contêineres Android exatos:
 
-1. um APK Android com `versionName 1.2.7d`, `versionCode 12723` e pacote
-   `com.gameloft.android.ANMP.GloftASHM`;
-2. `main.12032.com.gameloft.android.ANMP.GloftASHM.obb`;
-3. `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb`;
-4. `patch.12723.com.gameloft.android.ANMP.GloftASHM.obb`.
+| Insumo Android | SHA-256 | Escopo de runtime |
+|---|---|---|
+| APK 1.2.7d, layout ZIP de recuperação | `4188a463432b921dfb767a3ddf316e970655789a7bdf806298757f45071a8c87` | ARMv7 + x86 |
+| APK 1.2.7d, layout ZIP normal | `2878fec3235a91a0487ee0a3ffdbcb5c534e0d052a573941a10489024b2b1868` | ARMv7 + x86 |
+| APK 1.2.8d | `6211d194cb06c6cbb32c2491adef59554eef4d97763a2fbc1e4bbb52d9fcae9b` | ARMv7 + x86 |
+| instalador 1.2.8d autocontido | `42d1a3ac86708549fb425b8e36338ece56ea384fb2e30062c7a7da6ca34689e3` | somente ARM32/multilib |
 
-Não abra, extraia ou modifique os OBBs. O APK sem o cache completo de três
-arquivos não é suficiente.
+O cache ZIP correspondente também é aceito intacto:
+
+`23f3ef198f731fa1af0f2dfce4902e510dc4bf57edc3a3524e8986b2a4bcc770`
+
+O instalador autocontido já traz as expansões obrigatórias. Para qualquer APK
+solto, forneça o cache ZIP acima ou os dois OBBs obrigatórios abaixo. Não abra,
+extraia nem modifique um OBB.
+
+| Expansão | Exigência | SHA-256 |
+|---|---|---|
+| `main.12032.com.gameloft.android.ANMP.GloftASHM.obb` | obrigatória | `276c413051b3349e7738afb23521f972d085a186cb22ab18db230906aab46981` |
+| `patch.12723.com.gameloft.android.ANMP.GloftASHM.obb` | obrigatória | `0faae1e92ab998b8808e3984e4cdafbe732a87c26da58a44ad11c633e643cb80` |
+| `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb` | opcional | `58d9ed565ad67ee7362a2376a74387316535975460110eccf3df7eb3b6503981` |
+
+A rota X5M/Box32 exige um dos três perfis de APK universal. O instalador
+autocontido é recusado nessa rota porque não possui a biblioteca x86 do jogo.
 
 ### Organização das pastas
 
 1. Extraia `asm2.zip` na raiz do armazenamento que contém a pasta `ports/`.
-2. Copie o APK e os três OBBs intactos para
+2. Copie um conjunto suportado para
    `ports/asm2_127/gamedata/`.
 
-A organização recomendada é:
+Um APK solto mais o cache ZIP:
 
 ```text
 ports/
 └── asm2_127/
     └── gamedata/
-        ├── sua-copia-1.2.7d.apk
+        ├── sua-copia-suportada.apk
+        └── cache-correspondente.zip
+```
+
+Ou um APK solto mais os OBBs intactos:
+
+```text
+ports/
+└── asm2_127/
+    └── gamedata/
+        ├── sua-copia-suportada.apk
         ├── main.12032.com.gameloft.android.ANMP.GloftASHM.obb
-        ├── patch.12438.com.gameloft.android.ANMP.GloftASHM.obb
         └── patch.12723.com.gameloft.android.ANMP.GloftASHM.obb
 ```
 
+O `patch.12438` opcional pode ficar ao lado deles. Para o instalador
+autocontido ARM32-only, coloque somente esse arquivo em `gamedata`.
+
 3. Abra **The Amazing Spider-Man 2** pelo menu Ports.
-4. Aguarde o NXExtract validar e preparar os quatro arquivos. A primeira
+4. Aguarde o NXExtract validar e preparar os insumos. A primeira
    preparação processa mais de 1 GiB e pode levar vários minutos em
    armazenamento antigo.
 5. Se a tela legal original aparecer, pressione uma vez um botão frontal/de
    ação.
 
 O NXExtract valida o conteúdo em vez de confiar no nome externo. Um insumo
-suportado renomeado ainda pode ser reconhecido, mas nenhum APK ou OBB ausente
-pode ser recriado. Dados errados, incompletos, truncados ou corrompidos são
-rejeitados antes da publicação transacional.
+suportado renomeado ainda pode ser reconhecido. Dados errados, incompletos,
+truncados ou corrompidos são rejeitados antes da publicação transacional.
 
 Internet não é necessária. Atualizações preservam `gamedata`, saves,
 preferências e cache.

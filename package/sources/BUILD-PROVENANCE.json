@@ -1,11 +1,36 @@
 {
   "schema": 1,
-  "package_version": "1.1.4",
+  "package_version": "1.1.5",
   "target_game": {
-    "android_version_name": "1.2.7d",
+    "android_version_names": [
+      "1.2.7d",
+      "1.2.8d"
+    ],
     "android_version_code": 12723,
     "package": "com.gameloft.android.ANMP.GloftASHM"
   },
+  "owner_input_profiles": [
+    {
+      "id": "android-127-recovery",
+      "sha256": "4188a463432b921dfb767a3ddf316e970655789a7bdf806298757f45071a8c87",
+      "abi_scope": "armeabi-v7a+x86"
+    },
+    {
+      "id": "android-127-standard",
+      "sha256": "2878fec3235a91a0487ee0a3ffdbcb5c534e0d052a573941a10489024b2b1868",
+      "abi_scope": "armeabi-v7a+x86"
+    },
+    {
+      "id": "android-128-universal",
+      "sha256": "6211d194cb06c6cbb32c2491adef59554eef4d97763a2fbc1e4bbb52d9fcae9b",
+      "abi_scope": "armeabi-v7a+x86"
+    },
+    {
+      "id": "android-128-arm32-installer",
+      "sha256": "42d1a3ac86708549fb425b8e36338ece56ea384fb2e30062c7a7da6ca34689e3",
+      "abi_scope": "armeabi-v7a-only"
+    }
+  ],
   "loaders": {
     "bin/asm2-nextos-armhf": {
       "abi": "ELF32 ARM EABI5 hard-float",
@@ -51,9 +76,9 @@
   },
   "recipe": {
     "id": "asm2-127",
-    "version": "1.2.7d-3",
-    "file_sha256": "5813fdb8e819f745cf625561a8af99f2bc63cd0d0f51cea81a68c243a0152a41",
-    "nxextract_digest": "63ae6af29d0ce8958ce369263780c27123ccfd0d2e9f0eefd09e390dae772978"
+    "version": "1.2.7d-1.2.8d-1",
+    "file_sha256": "7e26143c70e9802fc7645b468a7bddcf5de773ba90147731545d8ecf96956f93",
+    "nxextract_digest": "0f20ad42bca295057e72b9dd1e738395f4918583863e0b139e786df31909d927"
   },
   "x5m_runtime": {
     "selection_scope": {
@@ -102,7 +127,13 @@
       "x5m_full_extraction_and_fast_path": true,
       "x5m_extractor_firmware_sdl_kmsdrm_physical": true,
       "mali450_full_extraction_and_exact_package_smoke": true,
+      "mali450_arm32_installer_payload_gameplay": true,
+      "mali450_owner_input_transactional_matrix": "4/4 ARMv7 extractions",
+      "mali450_interrupted_extraction_resume": true,
       "r36s_full_extraction_and_exact_package_smoke": true,
+      "multi_profile_hook_matrix": "4/4",
+      "arm32_installer_transactional_extraction": true,
+      "apk_plus_cache_zip_transactional_extraction": true,
       "box32_condition_stress": "3/3 runs, 256 cycles each",
       "dynarec_safety_profile": {
         "BOX64_DYNAREC": "1",

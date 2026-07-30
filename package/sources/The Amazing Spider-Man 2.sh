@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Universal PortMaster/NextOS entry point for ASM2 1.2.7d.
+# Universal PortMaster/NextOS entry point for ASM2 1.2.7d/1.2.8d.
 
 XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 

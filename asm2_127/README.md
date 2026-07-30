@@ -1,23 +1,30 @@
-# The Amazing Spider-Man 2 — Android 1.2.7d universal clean-room port
+# The Amazing Spider-Man 2 — Android 1.2.7d runtime, 1.2.7d/1.2.8d owner inputs
 
 **Language / Idioma:** [English](#english) · [Português](#português)
 
-This directory targets only the Android **1.2.7d** release (`versionCode 12723`,
-package `com.gameloft.android.ANMP.GloftASHM`). Its APK, native game library and
-expansion files are not interchangeable with other releases.
+This directory targets the exact Android **1.2.7d native runtime** (`versionCode
+12723`, package `com.gameloft.android.ANMP.GloftASHM`). Release 1.1.5 accepts
+four audited Android 1.2.7d/1.2.8d owner containers that carry that same exact
+runtime. Other APK, native-library and expansion variants are not
+interchangeable.
 
 It supports the original ARMv7 library natively and the original Android x86
 library through the physically validated AArch64 X5M Box32 route. The public
-package is bring-your-own-data: it contains no APK, OBB or game library.
+package is bring-your-own-data: it contains no APK, OBB or game library. One
+supported self-contained 1.2.8d input has ARMv7 data only and is therefore
+limited to ARM32/multilib systems.
 
-Este diretório suporta somente a versão Android **1.2.7d** (`versionCode 12723`,
-pacote `com.gameloft.android.ANMP.GloftASHM`). O APK, a biblioteca nativa e os
-arquivos de expansão não podem ser misturados com os de outras versões.
+Este diretório usa o **runtime nativo Android 1.2.7d** exato (`versionCode
+12723`, pacote `com.gameloft.android.ANMP.GloftASHM`). A release 1.1.5 aceita
+quatro contêineres Android 1.2.7d/1.2.8d auditados que carregam exatamente esse
+mesmo runtime. Outras variantes de APK, biblioteca nativa e expansões não podem
+ser misturadas.
 
 Ele suporta a biblioteca ARMv7 original de forma nativa e a biblioteca Android
 x86 original pela rota Box32 validada fisicamente no X5M AArch64. O pacote
 público exige os dados do próprio usuário e não inclui APK, OBB nem biblioteca
-do jogo.
+do jogo. Um dos insumos autocontidos 1.2.8d possui somente dados ARMv7 e, por
+isso, funciona apenas em sistemas ARM32/multilib.
 
 ---
 
@@ -55,15 +62,17 @@ options, pause and shop menus.
 
 The implementation was produced only from:
 
-- the user-owned 1.2.7d APK and its matching expansion files;
+- the audited user-owned 1.2.7d/1.2.8d Android containers and matching
+  expansion files;
 - generic, game-independent loader components already present in this
   repository;
 - public platform/API documentation; and
 - conceptual lessons from completed, working ports.
 
 No previous implementation of this game port is a source for this directory.
-Game-specific offsets and behavior are checked against the 1.2.7d binary and
-fail closed when its layout does not match. See [`CLEANROOM.md`](CLEANROOM.md).
+Game-specific offsets and behavior are checked against the exact 1.2.7d native
+library shared by those audited containers and fail closed when its layout
+does not match. See [`CLEANROOM.md`](CLEANROOM.md).
 
 ### Architecture
 
@@ -231,56 +240,38 @@ item-and-suit shop and standard Xbox controls on the same build.
 
 This repository contains only the loader source and launcher. It does **not**
 ship Gameloft's APK, `libtasm2.so`, OBB files, assets or other copyrighted game
-content. You must own and supply the exact Google Play Android 1.2.7d files.
+content. You must own and supply one exact supported Android input set.
+NXExtract identifies content rather than trusting external filenames.
 
-This is **not an APK-only game**. The complete input is one exact 1.2.7d APK
-plus all three intact cache files:
+| Android container | SHA-256 | Runtime scope |
+|---|---|---|
+| 1.2.7d APK, recovery ZIP layout | `4188a463432b921dfb767a3ddf316e970655789a7bdf806298757f45071a8c87` | ARMv7 + x86 |
+| 1.2.7d APK, standard ZIP layout | `2878fec3235a91a0487ee0a3ffdbcb5c534e0d052a573941a10489024b2b1868` | ARMv7 + x86 |
+| 1.2.8d APK | `6211d194cb06c6cbb32c2491adef59554eef4d97763a2fbc1e4bbb52d9fcae9b` | ARMv7 + x86 |
+| 1.2.8d self-contained installer | `42d1a3ac86708549fb425b8e36338ece56ea384fb2e30062c7a7da6ca34689e3` | ARM32/multilib only |
 
-- `main.12032.com.gameloft.android.ANMP.GloftASHM.obb`
-- `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb`
-- `patch.12723.com.gameloft.android.ANMP.GloftASHM.obb`
+For a loose APK, also supply either the intact companion cache ZIP
+`23f3ef198f731fa1af0f2dfce4902e510dc4bf57edc3a3524e8986b2a4bcc770`
+or the two required OBBs below. The self-contained installer already carries
+those expansions.
 
-Place the APK and all three OBBs as four loose files in
-`ports/asm2_127/gamedata/`. Do not unpack the OBB contents.
+| Expansion | Requirement | SHA-256 |
+|---|---|---|
+| `main.12032.com.gameloft.android.ANMP.GloftASHM.obb` | required | `276c413051b3349e7738afb23521f972d085a186cb22ab18db230906aab46981` |
+| `patch.12723.com.gameloft.android.ANMP.GloftASHM.obb` | required | `0faae1e92ab998b8808e3984e4cdafbe732a87c26da58a44ad11c633e643cb80` |
+| `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb` | optional | `58d9ed565ad67ee7362a2376a74387316535975460110eccf3df7eb3b6503981` |
 
-Reference input identifiers:
+All accepted containers produce the exact ARMv7 library
+`d091fe95c56af681f1a06453e9868622935ecbb759c05c340fc16bf8df2ae62e`.
+The three universal profiles also produce the exact x86 library
+`d146d38574c19a105df8a46e523f626c06004c8f71bbeed5cf77e919dbf81a12`.
+The self-contained installer has no x86 library and is rejected clearly on the
+X5M/Box32 route.
 
-| File | SHA-256 |
-|---|---|
-| source APK (`versionName 1.2.7d`, `versionCode 12723`) | `4188a463432b921dfb767a3ddf316e970655789a7bdf806298757f45071a8c87` |
-| `lib/armeabi-v7a/libtasm2.so` extracted from that APK | `d091fe95c56af681f1a06453e9868622935ecbb759c05c340fc16bf8df2ae62e` |
-| `lib/x86/libtasm2.so` extracted as `libtasm2-x86.so` | `d146d38574c19a105df8a46e523f626c06004c8f71bbeed5cf77e919dbf81a12` |
-| `main.12032.com.gameloft.android.ANMP.GloftASHM.obb` | `276c413051b3349e7738afb23521f972d085a186cb22ab18db230906aab46981` |
-| `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb` | `58d9ed565ad67ee7362a2376a74387316535975460110eccf3df7eb3b6503981` |
-| `patch.12723.com.gameloft.android.ANMP.GloftASHM.obb` | `0faae1e92ab998b8808e3984e4cdafbe732a87c26da58a44ad11c633e643cb80` |
-
-The hashes above identify the OBB payloads themselves, not any surrounding
-download archive. Do not copy unrelated shortcut, advertisement or metadata
-files from a third-party archive.
-
-The known APK needs normalization before the guest libzip can use it. The
-helper preserves the source APK, reconstructs a new runtime APK atomically and
-verifies every recovered member:
-
-```bash
-cd ports/asm2_127
-ASM2_STAGE=asm2_127-staging
-mkdir -p "$ASM2_STAGE/gamefiles/Android/obb/com.gameloft.android.ANMP.GloftASHM"
-
-python3 tools/rebuild_runtime_apk.py \
-  game-1.2.7d.apk "$ASM2_STAGE/gamefiles/base.apk"
-python3 tools/extract_apk.py game-1.2.7d.apk "$ASM2_STAGE/recovered-apk"
-
-cp "$ASM2_STAGE/recovered-apk/lib/armeabi-v7a/libtasm2.so" "$ASM2_STAGE/"
-cp main.12032.com.gameloft.android.ANMP.GloftASHM.obb \
-  patch.12438.com.gameloft.android.ANMP.GloftASHM.obb \
-  patch.12723.com.gameloft.android.ANMP.GloftASHM.obb \
-  "$ASM2_STAGE/gamefiles/Android/obb/com.gameloft.android.ANMP.GloftASHM/"
-
-python3 tools/extract_shop_assets.py \
-  main.12032.com.gameloft.android.ANMP.GloftASHM.obb \
-  "$ASM2_STAGE/assets"
-```
+Put one supported set in `ports/asm2_127/gamedata/` and launch the port.
+NXExtract validates every source and output, normalizes the recovery-layout
+APK when needed, and publishes the prepared runtime transactionally. Do not
+unpack or modify OBBs or the cache ZIP.
 
 The launcher belongs in the ports root; the executable, game library and all
 BYO data stay in the `asm2_127/` game directory:
@@ -302,8 +293,8 @@ BYO data stay in the `asm2_127/` game directory:
             │   └── files/save/                # saves + DataSharing store
             └── obb/com.gameloft.android.ANMP.GloftASHM/
                 ├── main.12032.com.gameloft.android.ANMP.GloftASHM.obb
-                ├── patch.12438.com.gameloft.android.ANMP.GloftASHM.obb
-                └── patch.12723.com.gameloft.android.ANMP.GloftASHM.obb
+                ├── patch.12723.com.gameloft.android.ANMP.GloftASHM.obb
+                └── patch.12438.com.gameloft.android.ANMP.GloftASHM.obb # optional
 ```
 
 Do not commit or redistribute the staging tree. `.gitignore` excludes the
@@ -452,14 +443,16 @@ padrão operou gameplay, câmera e os menus de título, opções, pausa e loja.
 
 A implementação foi produzida somente a partir de:
 
-- APK 1.2.7d e expansões correspondentes pertencentes ao usuário;
+- contêineres Android 1.2.7d/1.2.8d auditados e expansões correspondentes
+  pertencentes ao usuário;
 - componentes genéricos e independentes de jogo já presentes neste repositório;
 - documentação pública de APIs/plataformas; e
 - lições conceituais de ports concluídos e funcionais.
 
 Nenhuma implementação anterior deste port foi usada como fonte para este
 diretório. Offsets e comportamentos específicos são conferidos contra o binário
-1.2.7d e falham de forma segura se o layout não corresponder. Consulte
+1.2.7d exato compartilhado por esses contêineres e falham de forma segura se o
+layout não corresponder. Consulte
 [`CLEANROOM.md`](CLEANROOM.md).
 
 ### Arquitetura
@@ -627,57 +620,39 @@ loja funcional de itens e trajes e os controles Xbox padrão.
 
 Este repositório contém somente o código do loader e o launcher. Ele **não**
 distribui o APK da Gameloft, `libtasm2.so`, OBBs, assets ou qualquer outro
-conteúdo protegido do jogo. Você precisa possuir e fornecer os arquivos exatos
-da versão Google Play Android 1.2.7d.
+conteúdo protegido do jogo. Você precisa possuir e fornecer um conjunto
+Android exato e suportado. O NXExtract identifica o conteúdo, não o nome
+externo do arquivo.
 
-Este jogo **não é APK único**. O conjunto completo tem um APK 1.2.7d exato
-mais os três arquivos de cache intactos:
+| Contêiner Android | SHA-256 | Escopo de runtime |
+|---|---|---|
+| APK 1.2.7d, layout ZIP de recuperação | `4188a463432b921dfb767a3ddf316e970655789a7bdf806298757f45071a8c87` | ARMv7 + x86 |
+| APK 1.2.7d, layout ZIP normal | `2878fec3235a91a0487ee0a3ffdbcb5c534e0d052a573941a10489024b2b1868` | ARMv7 + x86 |
+| APK 1.2.8d | `6211d194cb06c6cbb32c2491adef59554eef4d97763a2fbc1e4bbb52d9fcae9b` | ARMv7 + x86 |
+| instalador 1.2.8d autocontido | `42d1a3ac86708549fb425b8e36338ece56ea384fb2e30062c7a7da6ca34689e3` | somente ARM32/multilib |
 
-- `main.12032.com.gameloft.android.ANMP.GloftASHM.obb`
-- `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb`
-- `patch.12723.com.gameloft.android.ANMP.GloftASHM.obb`
+Para um APK solto, forneça também o cache ZIP intacto
+`23f3ef198f731fa1af0f2dfce4902e510dc4bf57edc3a3524e8986b2a4bcc770`
+ou os dois OBBs obrigatórios abaixo. O instalador autocontido já traz essas
+expansões.
 
-Coloque o APK e os três OBBs como quatro arquivos soltos em
-`ports/asm2_127/gamedata/`. Não extraia o conteúdo dos OBBs.
+| Expansão | Exigência | SHA-256 |
+|---|---|---|
+| `main.12032.com.gameloft.android.ANMP.GloftASHM.obb` | obrigatória | `276c413051b3349e7738afb23521f972d085a186cb22ab18db230906aab46981` |
+| `patch.12723.com.gameloft.android.ANMP.GloftASHM.obb` | obrigatória | `0faae1e92ab998b8808e3984e4cdafbe732a87c26da58a44ad11c633e643cb80` |
+| `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb` | opcional | `58d9ed565ad67ee7362a2376a74387316535975460110eccf3df7eb3b6503981` |
 
-Identificadores dos insumos de referência:
+Todos os contêineres aceitos produzem a biblioteca ARMv7 exata
+`d091fe95c56af681f1a06453e9868622935ecbb759c05c340fc16bf8df2ae62e`.
+Os três perfis universais também produzem a biblioteca x86 exata
+`d146d38574c19a105df8a46e523f626c06004c8f71bbeed5cf77e919dbf81a12`.
+O instalador autocontido não possui biblioteca x86 e é recusado de forma clara
+na rota X5M/Box32.
 
-| Arquivo | SHA-256 |
-|---|---|
-| APK fonte (`versionName 1.2.7d`, `versionCode 12723`) | `4188a463432b921dfb767a3ddf316e970655789a7bdf806298757f45071a8c87` |
-| `lib/armeabi-v7a/libtasm2.so` extraída desse APK | `d091fe95c56af681f1a06453e9868622935ecbb759c05c340fc16bf8df2ae62e` |
-| `lib/x86/libtasm2.so` extraída como `libtasm2-x86.so` | `d146d38574c19a105df8a46e523f626c06004c8f71bbeed5cf77e919dbf81a12` |
-| `main.12032.com.gameloft.android.ANMP.GloftASHM.obb` | `276c413051b3349e7738afb23521f972d085a186cb22ab18db230906aab46981` |
-| `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb` | `58d9ed565ad67ee7362a2376a74387316535975460110eccf3df7eb3b6503981` |
-| `patch.12723.com.gameloft.android.ANMP.GloftASHM.obb` | `0faae1e92ab998b8808e3984e4cdafbe732a87c26da58a44ad11c633e643cb80` |
-
-Os hashes acima identificam os payloads OBB, não o ZIP externo que possa
-envolvê-los. Não copie atalhos, anúncios ou metadados irrelevantes de um pacote
-de terceiros.
-
-O APK conhecido precisa ser normalizado para a libzip do guest. O helper
-preserva o APK fonte, reconstrói atomicamente outro APK para o runtime e valida
-cada membro recuperado:
-
-```bash
-cd ports/asm2_127
-ASM2_STAGE=asm2_127-staging
-mkdir -p "$ASM2_STAGE/gamefiles/Android/obb/com.gameloft.android.ANMP.GloftASHM"
-
-python3 tools/rebuild_runtime_apk.py \
-  game-1.2.7d.apk "$ASM2_STAGE/gamefiles/base.apk"
-python3 tools/extract_apk.py game-1.2.7d.apk "$ASM2_STAGE/recovered-apk"
-
-cp "$ASM2_STAGE/recovered-apk/lib/armeabi-v7a/libtasm2.so" "$ASM2_STAGE/"
-cp main.12032.com.gameloft.android.ANMP.GloftASHM.obb \
-  patch.12438.com.gameloft.android.ANMP.GloftASHM.obb \
-  patch.12723.com.gameloft.android.ANMP.GloftASHM.obb \
-  "$ASM2_STAGE/gamefiles/Android/obb/com.gameloft.android.ANMP.GloftASHM/"
-
-python3 tools/extract_shop_assets.py \
-  main.12032.com.gameloft.android.ANMP.GloftASHM.obb \
-  "$ASM2_STAGE/assets"
-```
+Coloque um conjunto suportado em `ports/asm2_127/gamedata/` e abra o port. O
+NXExtract valida cada fonte e saída, normaliza o APK com layout de recuperação
+quando necessário e publica o runtime preparado de forma transacional. Não
+abra, modifique nem extraia OBBs ou o cache ZIP.
 
 O launcher fica na raiz de ports; o executável, a biblioteca do jogo e todos os
 dados BYO permanecem no diretório de jogo `asm2_127/`:
@@ -699,8 +674,8 @@ dados BYO permanecem no diretório de jogo `asm2_127/`:
             │   └── files/save/                # saves + store DataSharing
             └── obb/com.gameloft.android.ANMP.GloftASHM/
                 ├── main.12032.com.gameloft.android.ANMP.GloftASHM.obb
-                ├── patch.12438.com.gameloft.android.ANMP.GloftASHM.obb
-                └── patch.12723.com.gameloft.android.ANMP.GloftASHM.obb
+                ├── patch.12723.com.gameloft.android.ANMP.GloftASHM.obb
+                └── patch.12438.com.gameloft.android.ANMP.GloftASHM.obb # opcional
 ```
 
 Não faça commit nem redistribua o staging. O `.gitignore` exclui as saídas

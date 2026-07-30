@@ -52,8 +52,8 @@ extractor_scope='LD_LIBRARY_PATH="/usr/local/lib/aarch64-linux-gnu:/usr/lib/aarc
 
 grep -Fq '"$box32_bin" ./asm2_127_x86_box32 "$game_dir"' "$ENV_SH" ||
   fail "the scoped Box32 game invocation is missing"
-grep -Fq '"$game_dir/run-extractor.sh"' "$ENV_SH" ||
-  fail "the native extractor invocation is missing"
+grep -Fq '"$game_dir/run-extractor.sh" --abi x86' "$ENV_SH" ||
+  fail "the native extractor invocation does not select the x86 owner-data ABI"
 grep -Fq 'asm2_x5m_run_extractor "$GAMEDIR" "$CONTROLFOLDER"' "$RUN_SH" ||
   fail "the public launcher does not call the versioned extractor helper"
 grep -Fq \

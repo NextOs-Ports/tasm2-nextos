@@ -1,5 +1,5 @@
 #!/bin/bash
-# The Amazing Spider-Man 2 (1.2.7d) — so-loader ARMHF clean-room
+# The Amazing Spider-Man 2 (1.2.7d/1.2.8d inputs) — ARMHF clean-room loader
 # Launcher MULTI-DEVICE no padrao PortMaster (mesma base de SMHD / Bully /
 # Sonic 4 EP2 / Horizon Chase).
 #

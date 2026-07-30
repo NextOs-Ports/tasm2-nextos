@@ -17,6 +17,7 @@ X5_BOX32_BIN="$GAMEDIR/runtime/x5m/box64"
 X5_NATIVE_LIB_DIR="$GAMEDIR/runtime/x5m/native"
 X5_SDL2_COMPAT="$X5_NATIVE_LIB_DIR/libSDL2-2.0.so.0"
 X5_GUEST_LIBRARY="$GAMEDIR/libtasm2-x86.so"
+OWNER_RUNTIME_APK="$GAMEDIR/gamefiles/base.apk"
 X5_ENV_HELPER="${ASM2_X5_ENV_HELPER:-$RUN_SCRIPT_DIR/x5m-runtime-env.sh}"
 
 # Frozen after long gameplay plus save/TERM/reopen RC0 with the scoped profile.
@@ -25,6 +26,7 @@ X5_SDL2_COMPAT_SHA256=eae4f55286eb9f888302878fa18d6a9d21f61bee9e1678d0991fa25f6a
 # Aligned i386 loader frozen after the same real X5M validation.
 X5_GUEST_BIN_SHA256=4c5b49ca7639ca7bbea4433793fb8defecd63c1ec304feb9703002a9000fc86d
 X5_GUEST_LIBRARY_SHA256=d146d38574c19a105df8a46e523f626c06004c8f71bbeed5cf77e919dbf81a12
+ARM32_ONLY_RUNTIME_APK_SHA256=95ffd25a6623e731e80156df82066e4a2b1475466adb337389b93aeed0f1ea71
 
 launcher_error() {
   printf 'ASM2: %s\n' "$*" >&2
@@ -716,6 +718,16 @@ prepare_owner_data() {
 }
 
 validate_x5m_owner_data() {
+  local owner_apk_hash
+
+  [ -f "$OWNER_RUNTIME_APK" ] && [ ! -L "$OWNER_RUNTIME_APK" ] ||
+    launcher_error "NXExtract did not create a validated runtime base.apk"
+  owner_apk_hash=$(LC_ALL=C command sha256sum -- "$OWNER_RUNTIME_APK" 2>/dev/null)
+  owner_apk_hash=${owner_apk_hash%%[[:space:]]*}
+  [ "$owner_apk_hash" != "$ARM32_ONLY_RUNTIME_APK_SHA256" ] ||
+    launcher_error \
+      "this validated 1.2.8d source is ARM32/multilib-only; the X5M route requires a supported APK containing the x86 game library"
+
   [ -f "$X5_GUEST_LIBRARY" ] && [ ! -L "$X5_GUEST_LIBRARY" ] ||
     launcher_error \
       "NXExtract did not create the required i386 game library: libtasm2-x86.so"
@@ -764,7 +776,7 @@ asm2_launcher_main() {
   acquire_launch_lock
   : > "$GAMEDIR/debug.log"
   exec > "$GAMEDIR/debug.log" 2>&1
-  printf '=== The Amazing Spider-Man 2 1.2.7d | %s ===\n' \
+  printf '=== The Amazing Spider-Man 2 1.2.7d/1.2.8d | %s ===\n' \
     "$(date -Is 2>/dev/null || date)"
 
   for required_tool in od dd tr wc grep awk readlink; do

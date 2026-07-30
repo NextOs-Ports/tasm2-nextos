@@ -1,39 +1,47 @@
-THE AMAZING SPIDER-MAN 2 1.2.7d — DADOS DO USUARIO / USER DATA
+THE AMAZING SPIDER-MAN 2 1.2.7d / 1.2.8d — DADOS DO USUARIO / USER DATA
 
 PT-BR
-Coloque nesta pasta os arquivos legais da sua copia Android 1.2.7d:
+Coloque nesta pasta um conjunto legal e suportado da sua copia Android.
 
-ATENCAO: ESTE JOGO NAO E APK UNICO. SAO QUATRO ARQUIVOS DE ENTRADA:
+FORMATO 1 — APK SOLTO:
 
-1. o APK exato da versao 1.2.7d (versionCode 12723);
-2. main.12032.com.gameloft.android.ANMP.GloftASHM.obb
-3. patch.12438.com.gameloft.android.ANMP.GloftASHM.obb
-4. patch.12723.com.gameloft.android.ANMP.GloftASHM.obb
+1. um APK 1.2.7d ou 1.2.8d suportado;
+2. o cache ZIP correspondente intacto; OU estes dois OBBs intactos:
+   main.12032.com.gameloft.android.ANMP.GloftASHM.obb
+   patch.12723.com.gameloft.android.ANMP.GloftASHM.obb
 
-Deixe os quatro arquivos soltos nesta pasta. Nao abra nem extraia o conteudo
-dos OBBs. Um APK sem os tres caches esta incompleto e sera recusado.
+patch.12438.com.gameloft.android.ANMP.GloftASHM.obb e opcional.
+
+FORMATO 2 — INSTALADOR 1.2.8d AUTOCONTIDO:
+
+Coloque somente o instalador suportado. Ele ja possui os dois OBBs obrigatorios,
+mas funciona apenas em ARM32/multilib. No X5M, use um APK universal com x86.
 
 Os nomes externos nao importam. O NXExtract identifica pelo conteudo, valida
-tamanho e SHA-256, reconstrói uma copia runtime valida do APK danificado e
-publica tudo de forma transacional. O APK, o ZIP e os OBBs originais nunca sao
-apagados. Outra versao, arquivo ausente, truncado ou corrompido e recusado sem
-substituir uma instalacao que ja funciona.
+tamanho, SHA-256 e bibliotecas nativas, prepara uma copia runtime valida sem
+executar o instalador Android e publica tudo de forma transacional. O APK, o
+ZIP e os OBBs originais nunca sao apagados. Arquivo ausente, truncado ou
+corrompido e recusado sem substituir uma instalacao que ja funciona.
 
 ENGLISH
-Place the legal files from your Android 1.2.7d copy in this directory:
+Place one legal supported Android input set in this directory.
 
-WARNING: THIS IS NOT AN APK-ONLY GAME. FOUR INPUT FILES ARE REQUIRED:
+LAYOUT 1 — LOOSE APK:
 
-1. the exact 1.2.7d APK (versionCode 12723);
-2. main.12032.com.gameloft.android.ANMP.GloftASHM.obb
-3. patch.12438.com.gameloft.android.ANMP.GloftASHM.obb
-4. patch.12723.com.gameloft.android.ANMP.GloftASHM.obb
+1. one supported 1.2.7d or 1.2.8d APK;
+2. the intact matching cache ZIP; OR these two intact OBBs:
+   main.12032.com.gameloft.android.ANMP.GloftASHM.obb
+   patch.12723.com.gameloft.android.ANMP.GloftASHM.obb
 
-Leave all four files loose in this directory. Do not open or unpack the OBB
-files. An APK without all three cache files is incomplete and will be rejected.
+patch.12438.com.gameloft.android.ANMP.GloftASHM.obb is optional.
+
+LAYOUT 2 — SELF-CONTAINED 1.2.8d INSTALLER:
+
+Place only the supported installer. It already contains both required OBBs,
+but it is ARM32/multilib-only. On X5M, use a universal APK containing x86.
 
 External filenames do not matter. NXExtract identifies content, checks exact
-sizes and SHA-256 hashes, reconstructs a valid runtime copy of the damaged APK
-and publishes all outputs transactionally. The original APK, ZIP and OBB files
-are never deleted. Wrong, missing, truncated or damaged inputs are rejected
-without replacing an already working installation.
+sizes, SHA-256 hashes and native libraries, prepares a valid runtime copy
+without executing Android installer code and publishes all outputs
+transactionally. Original APK, ZIP and OBB files are never deleted. Missing,
+truncated or damaged inputs are rejected without replacing a working install.

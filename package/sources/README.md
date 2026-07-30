@@ -1,8 +1,8 @@
-# The Amazing Spider-Man 2 1.2.7d — universal BYO-data port
+# The Amazing Spider-Man 2 1.2.7d / 1.2.8d — universal BYO-data port
 
 **Language / Idioma:** [English](#english) · [Português](#português)
 
-**Package release / Versão do pacote:** 1.1.4
+**Package release / Versão do pacote:** 1.1.5
 
 This is an independent clean-room compatibility loader. It does not distribute
 the APK, either native game library, OBB files, audio or other executable game
@@ -48,34 +48,36 @@ The X5M runtime is intentionally rejected on other AArch64 SoCs.
 
 ### Install with your own Android data
 
-**This is not an APK-only game.** It requires one exact Android 1.2.7d APK
-(`versionCode 12723`) plus all three cache/OBB files. Do not unpack the OBBs.
+NXExtract accepts the audited 1.2.7d/1.2.8d inputs documented in
+`INSTALLATION.md`:
 
 1. Extract `asm2.zip` at the storage root that contains `ports/`.
-2. Put the APK in `ports/asm2_127/gamedata/`.
-3. Put these three untouched files in the same directory:
+2. Put one supported APK in `ports/asm2_127/gamedata/`.
+3. For a loose APK, also put the validated companion cache ZIP there, or these
+   intact OBB files:
    - `main.12032.com.gameloft.android.ANMP.GloftASHM.obb`
-   - `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb`
    - `patch.12723.com.gameloft.android.ANMP.GloftASHM.obb`
+   - optionally,
+     `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb`
 4. Launch **The Amazing Spider-Man 2** and let NXExtract finish.
 
-The recommended input layout is four loose files. NXExtract identifies
-supported data by content even when an external filename differs, but a
-missing APK or cache file cannot be reconstructed. See `INSTALLATION.md`.
+The validated self-contained 1.2.8d installer already carries the two required
+expansions and needs no separate cache. It is ARM32/multilib-only; the X5M
+route requires a supported APK that contains the exact x86 game library.
+External filenames do not matter.
 
-NXExtract identifies content instead of trusting names. It validates the exact
-APK and OBB hashes, rebuilds a standards-compliant runtime APK from the known
-damaged source package, recovers both `libtasm2.so` and `libtasm2-x86.so`
-through physical ZIP headers, creates the two offline shop catalogs and
-validates all eight outputs before publishing them together.
+NXExtract validates the supported container and OBB hashes, verifies the exact
+native-library bytes, repairs the known damaged ZIP layout, extracts valid
+layouts without executing Android installer code, creates the two offline shop
+catalogs and validates every output before publishing them together.
 
 The rebuilt APK stores its recovered members without compression. This keeps
 the result byte-identical across firmware with different zlib versions while
 the full 622-member CRC and SHA-256 verification still runs before publication.
 
 An incomplete, wrong, truncated or corrupt input cannot replace working game
-data. The owner's source files are never deleted. Updates publish only those
-eight generated outputs, so saves, preferences and cache remain untouched.
+data. The owner's source files are never deleted. Updates publish only
+validated runtime outputs, so saves, preferences and cache remain untouched.
 
 The first clean run follows the original sequence: legal disclaimer, update
 log, the native cloud-data notice, controls, progressive loading and gameplay.
@@ -134,27 +136,26 @@ como testes físicos. A rota X5M é recusada em outros SoCs AArch64.
 
 ### Instalação com seus próprios dados Android
 
-**Este jogo não é APK único.** Ele exige um APK Android 1.2.7d exato
-(`versionCode 12723`) mais os três arquivos de cache/OBB. Não descompacte os
-OBBs.
+O NXExtract aceita os insumos 1.2.7d/1.2.8d auditados em `INSTALLATION.md`:
 
 1. Extraia `asm2.zip` na raiz do armazenamento que contém `ports/`.
-2. Coloque o APK em `ports/asm2_127/gamedata/`.
-3. Coloque na mesma pasta estes três arquivos intactos:
+2. Coloque um APK suportado em `ports/asm2_127/gamedata/`.
+3. Para um APK solto, coloque também o cache ZIP validado ou estes OBBs
+   intactos:
    - `main.12032.com.gameloft.android.ANMP.GloftASHM.obb`
-   - `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb`
    - `patch.12723.com.gameloft.android.ANMP.GloftASHM.obb`
+   - opcionalmente,
+     `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb`
 4. Abra **The Amazing Spider-Man 2** e aguarde o NXExtract terminar.
 
-A organização recomendada são quatro arquivos soltos. O NXExtract identifica
-os dados suportados pelo conteúdo mesmo se um nome externo for diferente, mas
-não consegue reconstruir um APK ou cache ausente. Consulte `INSTALLATION.md`.
+O instalador 1.2.8d autocontido validado já traz as duas expansões obrigatórias
+e dispensa cache separado. Ele funciona somente em ARM32/multilib; a rota X5M
+exige um APK suportado com a biblioteca x86 exata. Nomes externos não importam.
 
-O NXExtract reconhece conteúdo em vez de confiar em nomes. Ele valida os hashes
-exatos, reconstrói um APK runtime normal a partir do pacote-fonte danificado,
-recupera `libtasm2.so` e `libtasm2-x86.so` pelos headers físicos do ZIP, cria
-os dois catálogos da loja offline e só publica os oito resultados depois da
-validação completa.
+O NXExtract valida os hashes dos contêineres e OBBs suportados, confirma os
+bytes exatos das bibliotecas nativas, repara o layout ZIP danificado conhecido,
+extrai layouts válidos sem executar o instalador Android, cria os dois
+catálogos da loja offline e só publica os resultados depois da validação.
 
 O APK reconstruído armazena os membros recuperados sem compressão. Assim o
 resultado permanece byte a byte idêntico entre firmwares com versões diferentes
@@ -163,7 +164,7 @@ publicação.
 
 Dados ausentes, de outra versão, truncados ou corrompidos não substituem uma
 instalação funcional. Os arquivos-fonte do dono nunca são apagados. A
-atualização troca somente os oito resultados gerados, preservando saves,
+atualização troca somente resultados de runtime validados, preservando saves,
 preferências e cache.
 
 Na primeira execução, a primeira ação de botão frontal vira uma única vez o

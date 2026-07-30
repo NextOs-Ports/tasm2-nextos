@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""Prepare exact ASM2 1.2.7d runtime files inside an NXExtract stage.
+"""Prepare validated ASM2 1.2.7d/1.2.8d data inside an NXExtract stage.
 
-The supported APK has damaged ZIP bookkeeping and one raw-DEFLATE stream with
-one missing byte.  NXExtract first proves the Android package identity through
-the readable manifest and stages the three exact OBB files.  This hook then
-finds the owner's byte-exact source APK, rebuilds a standards-compliant runtime
-APK, recovers the ARMv7 and x86 libraries through physical local headers and
-creates the two offline shop files.  The source files are never modified or
-deleted.
+NXExtract stages the exact expansion files before this hook runs.  The hook
+then identifies one of the audited owner-supplied APK/container profiles,
+creates a libzip-readable runtime APK, recovers the byte-exact native game
+libraries and builds the two offline shop files.  One known 1.2.8d installer
+contains ARMv7 game code only; that profile is deliberately rejected for an
+x86 target.  Source files are never executed, modified or deleted.
 """
 
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass
 import hashlib
 import os
 from pathlib import Path
@@ -24,14 +24,76 @@ import zipfile
 from extract_apk import physical_headers, unpack_entry
 
 
-SOURCE_APK_SIZE = 31_774_872
-SOURCE_APK_SHA256 = (
-    "4188a463432b921dfb767a3ddf316e970655789a7bdf806298757f45071a8c87"
+@dataclass(frozen=True)
+class SourceProfile:
+    identifier: str
+    description: str
+    source_size: int
+    source_sha256: str
+    runtime_mode: str
+    runtime_size: int
+    runtime_sha256: str
+    runtime_member: str | None = None
+    has_x86: bool = True
+
+
+SOURCE_PROFILES = (
+    SourceProfile(
+        identifier="android-127-recovery",
+        description="validated Android 1.2.7d APK (recovery layout)",
+        source_size=31_774_872,
+        source_sha256=(
+            "4188a463432b921dfb767a3ddf316e970655789a7bdf806298757f45071a8c87"
+        ),
+        runtime_mode="rebuild",
+        runtime_size=67_667_020,
+        runtime_sha256=(
+            "a3f7c790f2ad0a3f62826668f8466f398aa7e15237287c8f693310a232fa44fc"
+        ),
+    ),
+    SourceProfile(
+        identifier="android-127-standard",
+        description="validated Android 1.2.7d APK (standard ZIP layout)",
+        source_size=31_774_872,
+        source_sha256=(
+            "2878fec3235a91a0487ee0a3ffdbcb5c534e0d052a573941a10489024b2b1868"
+        ),
+        runtime_mode="copy",
+        runtime_size=31_774_872,
+        runtime_sha256=(
+            "2878fec3235a91a0487ee0a3ffdbcb5c534e0d052a573941a10489024b2b1868"
+        ),
+    ),
+    SourceProfile(
+        identifier="android-128-universal",
+        description="validated Android 1.2.8d APK (ARMv7 plus x86)",
+        source_size=31_519_080,
+        source_sha256=(
+            "6211d194cb06c6cbb32c2491adef59554eef4d97763a2fbc1e4bbb52d9fcae9b"
+        ),
+        runtime_mode="copy",
+        runtime_size=31_519_080,
+        runtime_sha256=(
+            "6211d194cb06c6cbb32c2491adef59554eef4d97763a2fbc1e4bbb52d9fcae9b"
+        ),
+    ),
+    SourceProfile(
+        identifier="android-128-arm32-installer",
+        description="validated Android 1.2.8d ARM32 installer",
+        source_size=659_684_888,
+        source_sha256=(
+            "42d1a3ac86708549fb425b8e36338ece56ea384fb2e30062c7a7da6ca34689e3"
+        ),
+        runtime_mode="member",
+        runtime_member="assets/app.png",
+        runtime_size=15_702_180,
+        runtime_sha256=(
+            "95ffd25a6623e731e80156df82066e4a2b1475466adb337389b93aeed0f1ea71"
+        ),
+        has_x86=False,
+    ),
 )
-RUNTIME_APK_SIZE = 67_667_020
-RUNTIME_APK_SHA256 = (
-    "a3f7c790f2ad0a3f62826668f8466f398aa7e15237287c8f693310a232fa44fc"
-)
+
 ARM_LIBRARY_ENTRY = "lib/armeabi-v7a/libtasm2.so"
 ARM_LIBRARY_SIZE = 20_241_296
 ARM_LIBRARY_SHA256 = (
@@ -42,32 +104,24 @@ X86_LIBRARY_SIZE = 32_152_072
 X86_LIBRARY_SHA256 = (
     "d146d38574c19a105df8a46e523f626c06004c8f71bbeed5cf77e919dbf81a12"
 )
+X86_UNAVAILABLE_PAYLOAD = b"ASM2_ARM32_ONLY\n"
+X86_UNAVAILABLE_SHA256 = (
+    "70b25ed02e2a774054be10f9c777458ad0329ad70350fe12022c22c8939281da"
+)
 PACKAGE = "com.gameloft.android.ANMP.GloftASHM"
 OBB_DIRECTORY = Path("gamefiles/Android/obb") / PACKAGE
 MAIN_OBB = "main.12032.com.gameloft.android.ANMP.GloftASHM.obb"
 PATCH_12438 = "patch.12438.com.gameloft.android.ANMP.GloftASHM.obb"
 PATCH_12723 = "patch.12723.com.gameloft.android.ANMP.GloftASHM.obb"
 
-EXPECTED_OUTPUTS = {
-    "gamefiles/base.apk": (
-        RUNTIME_APK_SIZE,
-        RUNTIME_APK_SHA256,
-    ),
+REQUIRED_OUTPUTS = {
     "libtasm2.so": (
         ARM_LIBRARY_SIZE,
         ARM_LIBRARY_SHA256,
     ),
-    "libtasm2-x86.so": (
-        X86_LIBRARY_SIZE,
-        X86_LIBRARY_SHA256,
-    ),
     str(OBB_DIRECTORY / MAIN_OBB): (
         1_236_510_228,
         "276c413051b3349e7738afb23521f972d085a186cb22ab18db230906aab46981",
-    ),
-    str(OBB_DIRECTORY / PATCH_12438): (
-        24_099_405,
-        "58d9ed565ad67ee7362a2376a74387316535975460110eccf3df7eb3b6503981",
     ),
     str(OBB_DIRECTORY / PATCH_12723): (
         98_576_965,
@@ -80,6 +134,12 @@ EXPECTED_OUTPUTS = {
     "assets/IapStoreItems_Offline.json": (
         4_717,
         "c857e6f3b2685bf514dc53af345db43059b2e4c44fe3d4add28059e973c029b9",
+    ),
+}
+OPTIONAL_OUTPUTS = {
+    str(OBB_DIRECTORY / PATCH_12438): (
+        24_099_405,
+        "58d9ed565ad67ee7362a2376a74387316535975460110eccf3df7eb3b6503981",
     ),
 }
 
@@ -110,34 +170,68 @@ def validate_file(path: Path, size: int, digest: str, label: str) -> None:
         )
 
 
-def find_source_apk(game_dir: Path) -> Path:
-    candidates = []
+def find_source_package(
+    game_dir: Path, target_abi: str
+) -> tuple[SourceProfile, Path]:
+    profiles_by_size: dict[int, list[SourceProfile]] = {}
+    for profile in SOURCE_PROFILES:
+        profiles_by_size.setdefault(profile.source_size, []).append(profile)
+
+    candidates: list[tuple[SourceProfile, Path]] = []
     for directory in (game_dir / "gamedata", game_dir):
         if directory.is_symlink() or not directory.is_dir():
             continue
         for entry in sorted(directory.iterdir(), key=lambda item: item.name.casefold()):
             try:
-                if (
-                    entry.is_symlink()
-                    or not entry.is_file()
-                    or entry.stat().st_size != SOURCE_APK_SIZE
-                ):
+                if entry.is_symlink() or not entry.is_file():
                     continue
+                profiles = profiles_by_size.get(entry.stat().st_size, [])
             except OSError:
                 continue
-            if sha256_file(entry) == SOURCE_APK_SHA256:
-                candidates.append(entry)
+            if not profiles:
+                continue
+            actual_digest = sha256_file(entry)
+            for profile in profiles:
+                if actual_digest == profile.source_sha256:
+                    candidates.append((profile, entry))
+
     if not candidates:
         raise RuntimeError(
-            "the exact owner-supplied ASM2 Android 1.2.7d APK was not found "
-            "in gamedata"
+            "no supported owner-supplied ASM2 Android 1.2.7d/1.2.8d "
+            "APK or installer was found in gamedata"
         )
-    selected = candidates[0]
-    print(
-        "ASM2 source APK accepted by size and SHA-256"
-        + (" (%d identical copies found)" % len(candidates) if len(candidates) > 1 else "")
+
+    if target_abi == "x86":
+        universal = [candidate for candidate in candidates if candidate[0].has_x86]
+        if not universal:
+            raise RuntimeError(
+                "the recognized ASM2 1.2.8d source contains ARM32 game code "
+                "only; it works on ARM32/multilib devices but not the X5M "
+                "x86/Box32 route. Supply a supported APK containing the x86 "
+                "game library"
+            )
+        candidates = universal
+
+    profile_order = {
+        profile.identifier: index for index, profile in enumerate(SOURCE_PROFILES)
+    }
+    candidates.sort(
+        key=lambda candidate: (
+            profile_order[candidate[0].identifier],
+            str(candidate[1]).casefold(),
+        )
     )
-    return selected
+    selected_profile, selected_path = candidates[0]
+    print(
+        f"ASM2 source accepted: {selected_profile.description}; "
+        f"ABI scope={'ARMv7+x86' if selected_profile.has_x86 else 'ARM32-only'}"
+        + (
+            f" ({len(candidates)} supported source files found)"
+            if len(candidates) > 1
+            else ""
+        )
+    )
+    return selected_profile, selected_path
 
 
 def atomic_write(path: Path, payload: bytes) -> None:
@@ -168,6 +262,108 @@ def atomic_write(path: Path, payload: bytes) -> None:
                 temporary.unlink()
             except FileNotFoundError:
                 pass
+
+
+def atomic_copy_stream(
+    source,
+    destination: Path,
+    expected_size: int,
+    expected_digest: str,
+    label: str,
+) -> None:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temporary = None
+    try:
+        digest = hashlib.sha256()
+        written = 0
+        with tempfile.NamedTemporaryFile(
+            prefix=f".{destination.name}.",
+            suffix=".new",
+            dir=destination.parent,
+            delete=False,
+        ) as output:
+            temporary = Path(output.name)
+            while True:
+                block = source.read(8 * 1024 * 1024)
+                if not block:
+                    break
+                output.write(block)
+                digest.update(block)
+                written += len(block)
+            output.flush()
+            os.fsync(output.fileno())
+        if written != expected_size:
+            raise RuntimeError(
+                f"{label} has size {written}, expected {expected_size}"
+            )
+        actual_digest = digest.hexdigest()
+        if actual_digest != expected_digest:
+            raise RuntimeError(
+                f"{label} failed SHA-256 validation ({actual_digest})"
+            )
+        temporary.chmod(0o644)
+        os.replace(temporary, destination)
+        temporary = None
+        directory_fd = os.open(destination.parent, os.O_RDONLY | os.O_DIRECTORY)
+        try:
+            os.fsync(directory_fd)
+        finally:
+            os.close(directory_fd)
+    finally:
+        if temporary is not None:
+            try:
+                temporary.unlink()
+            except FileNotFoundError:
+                pass
+
+
+def prepare_runtime_apk(
+    profile: SourceProfile,
+    source_package: Path,
+    runtime_apk: Path,
+    rebuild_tool: Path,
+) -> None:
+    if profile.runtime_mode == "rebuild":
+        run_tool(rebuild_tool, source_package, runtime_apk, "--force")
+    elif profile.runtime_mode == "copy":
+        with source_package.open("rb") as source:
+            atomic_copy_stream(
+                source,
+                runtime_apk,
+                profile.runtime_size,
+                profile.runtime_sha256,
+                "runtime APK source",
+            )
+    elif profile.runtime_mode == "member":
+        if not profile.runtime_member:
+            raise RuntimeError("runtime member profile is incomplete")
+        with zipfile.ZipFile(source_package, "r") as archive:
+            info = archive.getinfo(profile.runtime_member)
+            if info.flag_bits & 0x1:
+                raise RuntimeError("nested runtime APK is encrypted")
+            if info.file_size != profile.runtime_size:
+                raise RuntimeError("nested runtime APK has an unexpected size")
+            with archive.open(info, "r") as source:
+                atomic_copy_stream(
+                    source,
+                    runtime_apk,
+                    profile.runtime_size,
+                    profile.runtime_sha256,
+                    "nested runtime APK",
+                )
+    else:
+        raise RuntimeError(f"unsupported runtime mode: {profile.runtime_mode}")
+
+    validate_file(
+        runtime_apk,
+        profile.runtime_size,
+        profile.runtime_sha256,
+        "runtime base.apk",
+    )
+    with zipfile.ZipFile(runtime_apk, "r") as archive:
+        bad_member = archive.testzip()
+        if bad_member is not None:
+            raise RuntimeError(f"runtime APK CRC test failed: {bad_member}")
 
 
 def recover_library(
@@ -221,32 +417,34 @@ def main() -> int:
     stage = args.stage.resolve(strict=True)
     game_dir = args.game_dir.resolve(strict=True)
     tools = Path(__file__).resolve().parent
-    source_apk = find_source_apk(game_dir)
+    target_abi = os.environ.get("NXEXTRACT_ABI", "armeabi-v7a")
+    profile, source_package = find_source_package(game_dir, target_abi)
 
-    progress(5, "VALIDATING OWNER-SUPPLIED ASM2 1.2.7d FILES")
-    for relative, (size, digest) in EXPECTED_OUTPUTS.items():
-        if relative.startswith("gamefiles/Android/obb/"):
-            validate_file(stage / relative, size, digest, relative)
+    progress(5, "VALIDATING OWNER-SUPPLIED ASM2 1.2.7d/1.2.8d FILES")
+    for relative in (
+        str(OBB_DIRECTORY / MAIN_OBB),
+        str(OBB_DIRECTORY / PATCH_12723),
+    ):
+        size, digest = REQUIRED_OUTPUTS[relative]
+        validate_file(stage / relative, size, digest, relative)
+    for relative, (size, digest) in OPTIONAL_OUTPUTS.items():
+        path = stage / relative
+        if path.exists() or path.is_symlink():
+            validate_file(path, size, digest, relative)
 
-    progress(15, "REBUILDING STANDARDS-COMPLIANT RUNTIME APK")
+    progress(15, "PREPARING VALIDATED RUNTIME APK")
     runtime_apk = stage / "gamefiles/base.apk"
-    run_tool(
+    prepare_runtime_apk(
+        profile,
+        source_package,
+        runtime_apk,
         tools / "rebuild_runtime_apk.py",
-        source_apk,
-        runtime_apk,
-        "--force",
-    )
-    validate_file(
-        runtime_apk,
-        RUNTIME_APK_SIZE,
-        RUNTIME_APK_SHA256,
-        "runtime base.apk",
     )
 
-    progress(50, "RECOVERING ARMV7 AND X86 GAME LIBRARIES")
+    progress(50, "RECOVERING VALIDATED NATIVE GAME LIBRARIES")
     arm_library = stage / "libtasm2.so"
     recover_library(
-        source_apk,
+        runtime_apk,
         arm_library,
         ARM_LIBRARY_ENTRY,
         ARM_LIBRARY_SIZE,
@@ -259,19 +457,28 @@ def main() -> int:
         "libtasm2.so",
     )
     x86_library = stage / "libtasm2-x86.so"
-    recover_library(
-        source_apk,
-        x86_library,
-        X86_LIBRARY_ENTRY,
-        X86_LIBRARY_SIZE,
-        X86_LIBRARY_SHA256,
-    )
-    validate_file(
-        x86_library,
-        X86_LIBRARY_SIZE,
-        X86_LIBRARY_SHA256,
-        "libtasm2-x86.so",
-    )
+    if profile.has_x86:
+        recover_library(
+            runtime_apk,
+            x86_library,
+            X86_LIBRARY_ENTRY,
+            X86_LIBRARY_SIZE,
+            X86_LIBRARY_SHA256,
+        )
+        validate_file(
+            x86_library,
+            X86_LIBRARY_SIZE,
+            X86_LIBRARY_SHA256,
+            "libtasm2-x86.so",
+        )
+    else:
+        atomic_write(x86_library, X86_UNAVAILABLE_PAYLOAD)
+        validate_file(
+            x86_library,
+            len(X86_UNAVAILABLE_PAYLOAD),
+            X86_UNAVAILABLE_SHA256,
+            "ARM32-only x86 marker",
+        )
 
     progress(75, "BUILDING OFFLINE SHOP CATALOG")
     assets = stage / "assets"
@@ -282,11 +489,40 @@ def main() -> int:
     )
 
     progress(90, "VERIFYING COMPLETE ASM2 DATA SET")
-    for relative, (size, digest) in EXPECTED_OUTPUTS.items():
+    validate_file(
+        runtime_apk,
+        profile.runtime_size,
+        profile.runtime_sha256,
+        "gamefiles/base.apk",
+    )
+    for relative, (size, digest) in REQUIRED_OUTPUTS.items():
         validate_file(stage / relative, size, digest, relative)
+    for relative, (size, digest) in OPTIONAL_OUTPUTS.items():
+        path = stage / relative
+        if path.exists() or path.is_symlink():
+            validate_file(path, size, digest, relative)
+    if profile.has_x86:
+        validate_file(
+            x86_library,
+            X86_LIBRARY_SIZE,
+            X86_LIBRARY_SHA256,
+            "libtasm2-x86.so",
+        )
+    else:
+        validate_file(
+            x86_library,
+            len(X86_UNAVAILABLE_PAYLOAD),
+            X86_UNAVAILABLE_SHA256,
+            "ARM32-only x86 marker",
+        )
 
-    progress(100, "ASM2 1.2.7d DATA PREPARED")
-    print("OK: all eight proprietary runtime outputs validated in NXExtract stage")
+    progress(100, "ASM2 1.2.7d/1.2.8d DATA PREPARED")
+    obb_count = 2 + int((stage / OBB_DIRECTORY / PATCH_12438).is_file())
+    print(
+        f"OK: profile={profile.identifier} "
+        f"abi_scope={'ARMv7+x86' if profile.has_x86 else 'ARM32-only'} "
+        f"obb_files={obb_count} runtime outputs validated in NXExtract stage"
+    )
     return 0
 
 

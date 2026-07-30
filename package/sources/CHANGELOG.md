@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.1.5
+
+- Accepts four audited owner-input profiles: two Android 1.2.7d APK layouts,
+  one universal ARMv7+x86 1.2.8d APK and one self-contained ARM32-only 1.2.8d
+  installer.
+- Accepts the matching cache as loose OBB files, a companion ZIP or the
+  validated self-contained installer. `main.12032` and `patch.12723` remain
+  byte-exact requirements; `patch.12438` is now optional and is still fully
+  validated whenever present.
+- Replaces whole-container rejection at the preparation hook with explicit
+  profile and native-library validation, fixing first-run failures that
+  occurred after NXExtract had already staged valid data.
+- Keeps the X5M route strict: ARM32-only input is rejected with a clear
+  compatibility message, while all inputs carrying the exact x86 library
+  remain eligible for Box32.
+- Validates all four preparation profiles, both transactional input layouts,
+  existing-install adoption, ARM32-only x86 rejection and real Mali-450
+  gameplay without the optional older patch OBB. A physical Mali-450 also
+  completed all four transactional ARMv7 extraction profiles, including a
+  successful resume after interruption.
+
 ## 1.1.4
 
 - Clarifies everywhere that the game is not APK-only: installation requires

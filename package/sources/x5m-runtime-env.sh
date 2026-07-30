@@ -10,7 +10,7 @@ asm2_x5m_run_extractor() {
 
   LD_LIBRARY_PATH="/usr/local/lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu:/lib/aarch64-linux-gnu:/usr/lib:/lib:$control_folder/libs:$control_folder/libs.aarch64" \
     NXEXTRACT_GAME_DIR="$game_dir" \
-    "$game_dir/run-extractor.sh"
+    "$game_dir/run-extractor.sh" --abi x86
 }
 
 asm2_x5m_run_game() {

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the deterministic public ASM2 1.2.7d BYO-data package.
+# Build the deterministic public ASM2 1.2.7d/1.2.8d BYO-data package.
 set -euo pipefail
 
 export LC_ALL=C
@@ -298,7 +298,7 @@ PY
 python3 "$STAGE/asm2_127/nxextract.py" recipe-check \
   --recipe "$STAGE/asm2_127/extractor.json" > "$TMP_ROOT/recipe-check.txt"
 grep -Fq \
-  'digest=63ae6af29d0ce8958ce369263780c27123ccfd0d2e9f0eefd09e390dae772978' \
+  'digest=0f20ad42bca295057e72b9dd1e738395f4918583863e0b139e786df31909d927' \
   "$TMP_ROOT/recipe-check.txt" ||
   fail "extractor recipe digest changed without provenance update"
 
@@ -353,6 +353,10 @@ grep -Fq \
   'LD_LIBRARY_PATH="/usr/local/lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu:/lib/aarch64-linux-gnu:/usr/lib:/lib:$control_folder/libs:$control_folder/libs.aarch64" \' \
   "$STAGE/asm2_127/x5m-runtime-env.sh" ||
   fail "X5M NXExtract UI must prefer the proven firmware SDL2/KMSDRM stack"
+grep -Fq \
+  '"$game_dir/run-extractor.sh" --abi x86' \
+  "$STAGE/asm2_127/x5m-runtime-env.sh" ||
+  fail "X5M NXExtract must select the x86 owner-data ABI"
 
 if grep -En \
     '^[[:space:]]*(export[[:space:]]+)?BOX64_DYNAREC_EAGER=' \
@@ -464,7 +468,7 @@ if game.findtext("image") != "./asm2_127/screenshot.png":
 
 with open(sys.argv[3], encoding="utf-8") as stream:
     provenance = json.load(stream)
-if provenance.get("package_version") != "1.1.4":
+if provenance.get("package_version") != "1.1.5":
     raise SystemExit("build provenance package version is invalid")
 with open(sys.argv[4], encoding="utf-8") as stream:
     package_version = stream.read().strip()
@@ -489,13 +493,45 @@ if (
     raise SystemExit("i386 loader identity disagrees with build provenance")
 if provenance.get("target_game", {}).get("android_version_code") != 12723:
     raise SystemExit("build provenance game version is invalid")
+if provenance.get("target_game", {}).get("android_version_names") != [
+    "1.2.7d",
+    "1.2.8d",
+]:
+    raise SystemExit("build provenance accepted Android versions are invalid")
+profiles = {
+    profile.get("id"): (
+        profile.get("sha256"),
+        profile.get("abi_scope"),
+    )
+    for profile in provenance.get("owner_input_profiles", [])
+}
+expected_profiles = {
+    "android-127-recovery": (
+        "4188a463432b921dfb767a3ddf316e970655789a7bdf806298757f45071a8c87",
+        "armeabi-v7a+x86",
+    ),
+    "android-127-standard": (
+        "2878fec3235a91a0487ee0a3ffdbcb5c534e0d052a573941a10489024b2b1868",
+        "armeabi-v7a+x86",
+    ),
+    "android-128-universal": (
+        "6211d194cb06c6cbb32c2491adef59554eef4d97763a2fbc1e4bbb52d9fcae9b",
+        "armeabi-v7a+x86",
+    ),
+    "android-128-arm32-installer": (
+        "42d1a3ac86708549fb425b8e36338ece56ea384fb2e30062c7a7da6ca34689e3",
+        "armeabi-v7a-only",
+    ),
+}
+if profiles != expected_profiles:
+    raise SystemExit("build provenance owner-input profiles are invalid")
 recipe = provenance.get("recipe", {})
 if recipe.get("file_sha256") != (
-    "5813fdb8e819f745cf625561a8af99f2bc63cd0d0f51cea81a68c243a0152a41"
+    "7e26143c70e9802fc7645b468a7bddcf5de773ba90147731545d8ecf96956f93"
 ):
     raise SystemExit("build provenance recipe file hash is invalid")
 if recipe.get("nxextract_digest") != (
-    "63ae6af29d0ce8958ce369263780c27123ccfd0d2e9f0eefd09e390dae772978"
+    "0f20ad42bca295057e72b9dd1e738395f4918583863e0b139e786df31909d927"
 ):
     raise SystemExit("build provenance recipe digest is invalid")
 

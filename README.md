@@ -1,8 +1,8 @@
-# The Amazing Spider-Man 2 1.2.7d — universal BYO-data port
+# The Amazing Spider-Man 2 1.2.7d / 1.2.8d — universal BYO-data port
 
 **Language / Idioma:** [English](#english) · [Português](#português)
 
-**Package release / Versão do pacote:** 1.1.4
+**Package release / Versão do pacote:** 1.1.5
 
 [Download the latest `asm2.zip`](https://github.com/NextOs-Ports/tasm2-nextos/releases/latest) ·
 [Installation / Instalação](INSTALLATION.md) ·
@@ -70,32 +70,42 @@ The X5M runtime is intentionally rejected on other AArch64 SoCs.
 
 ### Install with your own Android data
 
-> **This is not an APK-only game.** The complete installation requires exactly
-> one Android 1.2.7d APK **plus all three cache/OBB files** listed below. Do not
-> unpack the OBB files.
+NXExtract accepts the audited Android 1.2.7d and 1.2.8d owner-input profiles
+listed in the [installation guide](INSTALLATION.md). There are two supported
+layouts:
+
+- a supported loose APK plus `main.12032` and `patch.12723`, supplied either as
+  intact loose OBB files or inside the validated companion cache ZIP;
+- the validated self-contained 1.2.8d installer, which already carries those
+  two expansion files and works on ARM32/multilib devices only.
+
+The older `patch.12438` OBB is optional. When supplied, it is still accepted
+only with its exact validated size and SHA-256.
 
 1. Download `asm2.zip` from the
    [latest release](https://github.com/NextOs-Ports/tasm2-nextos/releases/latest)
    and extract it at the storage root that contains the firmware's `ports/`
    directory.
-2. Put the exact Android 1.2.7d APK (`versionCode 12723`) in
+2. Put one supported 1.2.7d/1.2.8d source in
    `ports/asm2_127/gamedata/`.
-3. Put these three matching cache files in the same directory:
+3. For a loose APK, also put the matching cache ZIP or these intact OBBs in the
+   same directory:
    - `main.12032.com.gameloft.android.ANMP.GloftASHM.obb`
-   - `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb`
    - `patch.12723.com.gameloft.android.ANMP.GloftASHM.obb`
+   - optionally,
+     `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb`
 4. Launch **The Amazing Spider-Man 2**.
 
-The recommended layout is four loose files: one APK plus three untouched OBBs.
-NXExtract can identify supported inputs by content even when an external
-filename differs, but it cannot replace a missing cache file. See the complete
-[bilingual installation guide](INSTALLATION.md).
+The self-contained installer needs no separate OBB or cache ZIP, but it does
+not contain the x86 game library required by the X5M/Box32 route. On that
+device, use one of the supported universal APK profiles. External filenames do
+not matter; content identity does.
 
 [NXExtract](https://github.com/NextOs-Ports/NXExtract) identifies content
-instead of trusting names. It validates the exact APK and OBB hashes, rebuilds
-a standards-compliant runtime APK from the known damaged source package,
-recovers both `libtasm2.so` and `libtasm2-x86.so` through physical ZIP headers,
-creates the two offline shop catalogs and validates all eight outputs before
+instead of trusting names. It validates the supported container and OBB
+hashes, verifies the exact native-library bytes, rebuilds the one known damaged
+ZIP layout, extracts valid layouts without executing their Android installer
+code, creates the two offline shop catalogs and validates every output before
 publishing them together.
 
 The rebuilt APK stores its recovered members without compression. This keeps
@@ -103,8 +113,8 @@ the result byte-identical across firmware with different zlib versions while
 the full 622-member CRC and SHA-256 verification still runs before publication.
 
 An incomplete, wrong, truncated or corrupt input cannot replace working game
-data. The owner's source files are never deleted. Updates publish only those
-eight generated outputs, so saves, preferences and cache remain untouched.
+data. The owner's source files are never deleted. Updates replace only the
+validated runtime outputs, so saves, preferences and cache remain untouched.
 
 The first clean run follows the original sequence: legal disclaimer, update
 log, the native cloud-data notice, controls, progressive loading and gameplay.
@@ -163,31 +173,41 @@ como testes físicos. A rota X5M é recusada em outros SoCs AArch64.
 
 ### Instalação com seus próprios dados Android
 
-> **Este jogo não funciona somente com o APK.** A instalação completa exige
-> exatamente um APK Android 1.2.7d **mais os três arquivos de cache/OBB**
-> listados abaixo. Não extraia o conteúdo dos OBBs.
+O NXExtract aceita os perfis Android 1.2.7d e 1.2.8d auditados no
+[guia de instalação](INSTALLATION.md). Há duas formas suportadas:
+
+- um APK solto suportado mais `main.12032` e `patch.12723`, como OBBs intactos
+  ou dentro do cache ZIP validado;
+- o instalador 1.2.8d autocontido validado, que já traz essas duas expansões e
+  funciona somente em aparelhos ARM32/multilib.
+
+O OBB antigo `patch.12438` é opcional. Se estiver presente, continua sendo
+aceito somente com tamanho e SHA-256 exatos.
 
 1. Baixe `asm2.zip` na
    [release mais recente](https://github.com/NextOs-Ports/tasm2-nextos/releases/latest)
    e extraia-o na raiz do armazenamento que contém a pasta `ports/`.
-2. Coloque o APK Android 1.2.7d exato (`versionCode 12723`) em
+2. Coloque uma fonte 1.2.7d/1.2.8d suportada em
    `ports/asm2_127/gamedata/`.
-3. Coloque na mesma pasta estes três arquivos de cache:
+3. Para um APK solto, coloque também o cache ZIP correspondente ou estes OBBs
+   intactos:
    - `main.12032.com.gameloft.android.ANMP.GloftASHM.obb`
-   - `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb`
    - `patch.12723.com.gameloft.android.ANMP.GloftASHM.obb`
+   - opcionalmente,
+     `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb`
 4. Abra **The Amazing Spider-Man 2**.
 
-A organização recomendada são quatro arquivos soltos: um APK e os três OBBs
-intactos. O NXExtract reconhece os insumos suportados pelo conteúdo mesmo que
-um nome externo seja diferente, mas não substitui nenhum cache ausente.
-Consulte o [guia bilíngue completo](INSTALLATION.md).
+O instalador autocontido dispensa OBB ou cache ZIP separado, mas não contém a
+biblioteca x86 exigida pela rota X5M/Box32. Nesse aparelho, use um dos perfis de
+APK universal suportados. O nome externo não importa; a identidade do conteúdo
+é o que vale.
 
 O [NXExtract](https://github.com/NextOs-Ports/NXExtract) reconhece conteúdo em
-vez de confiar em nomes. Ele valida os hashes exatos, reconstrói um APK runtime
-normal a partir do pacote-fonte danificado, recupera `libtasm2.so` e
-`libtasm2-x86.so` pelos headers físicos do ZIP, cria os dois catálogos da loja
-offline e só publica os oito resultados depois da validação completa.
+vez de confiar em nomes. Ele valida os hashes dos contêineres e OBBs
+suportados, confirma os bytes exatos das bibliotecas nativas, reconstrói o
+layout ZIP danificado conhecido, extrai layouts válidos sem executar o
+instalador Android, cria os dois catálogos da loja offline e só publica os
+resultados depois da validação completa.
 
 O APK reconstruído armazena os membros recuperados sem compressão. Assim o
 resultado permanece byte a byte idêntico entre firmwares com versões diferentes
@@ -196,8 +216,8 @@ publicação.
 
 Dados ausentes, de outra versão, truncados ou corrompidos não substituem uma
 instalação funcional. Os arquivos-fonte do dono nunca são apagados. A
-atualização troca somente os oito resultados gerados, preservando saves,
-preferências e cache.
+atualização troca somente os resultados de runtime validados, preservando
+saves, preferências e cache.
 
 Na primeira execução, a primeira ação de botão frontal vira uma única vez o
 toque exigido pelo disclaimer legal original. As ações seguintes permanecem
