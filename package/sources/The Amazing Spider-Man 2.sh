@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # Universal PortMaster/NextOS entry point for ASM2 1.2.7d/1.2.8d.
 
+# muOS inspects this literal marker before launching the port and exposes its
+# 32-bit PipeWire/SPA runtime for the ARMHF process.
+PORT_32BIT="Y"
+export PORT_32BIT
+
 XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 
 if [ -d /opt/system/Tools/PortMaster ]; then

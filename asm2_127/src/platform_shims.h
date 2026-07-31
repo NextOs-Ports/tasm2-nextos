@@ -20,6 +20,8 @@ struct asm2_platform_stats {
 
 void asm2_platform_get_stats(struct asm2_platform_stats *stats);
 void ASM2_GUEST_PCS asm2_glFinish(void);
+void *ASM2_GUEST_PCS asm2_glMapBufferOES(GLenum target, GLenum access);
+GLboolean ASM2_GUEST_PCS asm2_glUnmapBufferOES(GLenum target);
 
 void ASM2_GUEST_PCS asm2_glCompressedTexImage3DOES(
     GLenum target, GLint level, GLenum internal_format, GLsizei width,

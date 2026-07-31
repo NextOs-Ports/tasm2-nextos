@@ -3,7 +3,7 @@
 **Language / Idioma:** [English](#english) · [Português](#português)
 
 This directory targets the exact Android **1.2.7d native runtime** (`versionCode
-12723`, package `com.gameloft.android.ANMP.GloftASHM`). Release 1.1.5 accepts
+12723`, package `com.gameloft.android.ANMP.GloftASHM`). Release 1.1.6 accepts
 four audited Android 1.2.7d/1.2.8d owner containers that carry that same exact
 runtime. Other APK, native-library and expansion variants are not
 interchangeable.
@@ -15,7 +15,7 @@ supported self-contained 1.2.8d input has ARMv7 data only and is therefore
 limited to ARM32/multilib systems.
 
 Este diretório usa o **runtime nativo Android 1.2.7d** exato (`versionCode
-12723`, pacote `com.gameloft.android.ANMP.GloftASHM`). A release 1.1.5 aceita
+12723`, pacote `com.gameloft.android.ANMP.GloftASHM`). A release 1.1.6 aceita
 quatro contêineres Android 1.2.7d/1.2.8d auditados que carregam exatamente esse
 mesmo runtime. Outras variantes de APK, biblioteca nativa e expansões não podem
 ser misturadas.

@@ -657,6 +657,38 @@ configure_x5m_runtime() {
   unset WAYLAND_DISPLAY
 }
 
+configure_arm_audio_runtime() {
+  local root=${1:-/} directory
+
+  [ "$PLATFORM_KIND" = armhf ] || return 0
+  export PORT_32BIT=Y
+
+  # Some AArch64 CFWs route their ALSA default through PipeWire. Their ARMHF
+  # SDL process must load the matching 32-bit ALSA, PipeWire and SPA modules;
+  # otherwise the host silently searches the AArch64 module tree.
+  for directory in \
+    "$(platform_path "$root" /usr/lib32)" \
+    "$(platform_path "$root" /usr/lib/arm-linux-gnueabihf)" \
+    "$(platform_path "$root" /usr/local/lib/arm-linux-gnueabihf)"; do
+    if [ -d "$directory/pipewire-0.3" ]; then
+      export PIPEWIRE_MODULE_DIR="$directory/pipewire-0.3"
+    fi
+    if [ -d "$directory/spa-0.2" ]; then
+      export SPA_PLUGIN_DIR="$directory/spa-0.2"
+    fi
+    if [ -f "$directory/alsa-lib/libasound_module_pcm_pipewire.so" ]; then
+      export ALSA_PLUGIN_DIR="$directory/alsa-lib"
+    fi
+  done
+
+  if [ -n "${PIPEWIRE_MODULE_DIR:-}${SPA_PLUGIN_DIR:-}${ALSA_PLUGIN_DIR:-}" ]; then
+    printf '[launcher] ARMHF audio modules pipewire=%s spa=%s alsa=%s\n' \
+      "${PIPEWIRE_MODULE_DIR:-system}" \
+      "${SPA_PLUGIN_DIR:-system}" \
+      "${ALSA_PLUGIN_DIR:-system}"
+  fi
+}
+
 configure_common_runtime() {
   local pulse_socket memory_kib controller_db
 
@@ -776,7 +808,7 @@ asm2_launcher_main() {
   acquire_launch_lock
   : > "$GAMEDIR/debug.log"
   exec > "$GAMEDIR/debug.log" 2>&1
-  printf '=== The Amazing Spider-Man 2 1.2.7d/1.2.8d | %s ===\n' \
+  printf '=== The Amazing Spider-Man 2 1.2.7d/1.2.8d | port 1.1.6 | %s ===\n' \
     "$(date -Is 2>/dev/null || date)"
 
   for required_tool in od dd tr wc grep awk readlink; do
@@ -795,6 +827,7 @@ asm2_launcher_main() {
   else
     preflight_armhf
     configure_arm_video_runtime
+    configure_arm_audio_runtime /
   fi
   configure_common_runtime
 

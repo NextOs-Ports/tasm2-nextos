@@ -2,7 +2,7 @@
 
 **Language / Idioma:** [English](#english) · [Português](#português)
 
-**Package release / Versão do pacote:** 1.1.5
+**Package release / Versão do pacote:** 1.1.6
 
 This is an independent clean-room compatibility loader. It does not distribute
 the APK, either native game library, OBB files, audio or other executable game
@@ -35,16 +35,20 @@ Physically validated:
 
 - NextOS R2 on Mali-450, using the current NextOS ARMHF build;
 - ArkOS on R36S / Mali-G31, using the low-glibc ARMHF build;
+- muOS on RG 40XX-H, using the low-glibc ARMHF build and the firmware's
+  32-bit ALSA, PipeWire and SPA modules. Gameplay, clear audio and clean
+  shutdown passed with zero reported audio underruns, missing bytes or
+  failures;
 - NextOS on AArch64 X5M / Mali-G310 completed 11,034 gameplay frames and a
   6,213-frame reopen, both RC0, with save create/update/reload, physical
   controls and audio passing. This route requires the scoped Box64 profile
   `DYNAREC=1`, `BIGBLOCK=0`, `SAFEFLAGS=2`; experimental eager mode is not
   used.
 
-The ARMHF route is also structured for PortMaster-class firmware that provides
-an ARM hard-float runtime, SDL2 and GLES2/GLES3. Those additional firmware and
-device combinations are compatible targets, not claims of physical testing.
-The X5M runtime is intentionally rejected on other AArch64 SoCs.
+The ARMHF route is also structured for other PortMaster-class firmware that
+provides an ARM hard-float runtime, SDL2 and GLES2/GLES3. Those other firmware
+and device combinations are compatible targets, not claims of physical
+testing. The X5M runtime is intentionally rejected on other AArch64 SoCs.
 
 ### Install with your own Android data
 
@@ -70,6 +74,8 @@ NXExtract validates the supported container and OBB hashes, verifies the exact
 native-library bytes, repairs the known damaged ZIP layout, extracts valid
 layouts without executing Android installer code, creates the two offline shop
 catalogs and validates every output before publishing them together.
+If an APK candidate is rejected, the log records its size, SHA-256 and exact
+rejection reason without exposing the owner's filename or local path.
 
 The rebuilt APK stores its recovered members without compression. This keeps
 the result byte-identical across firmware with different zlib versions while
@@ -123,16 +129,19 @@ dependências e hashes, e executa o jogo em primeiro plano.
 
 ### Compatibilidade
 
-Validação física concluída no NextOS R2 com Mali-450 e no ArkOS/R36S com
-Mali-G31. No NextOS/X5M com Mali-G310, a rota final completou 11.034 frames de
-gameplay e 6.213 frames após reabrir, ambos RC0, com criação/atualização/carga
-de save, áudio e controle físico aprovados. Ela exige o perfil Box64 restrito
-`DYNAREC=1`, `BIGBLOCK=0`, `SAFEFLAGS=2`; o modo eager experimental não é
-usado.
-A rota ARMHF também foi estruturada
-para firmwares da classe PortMaster que forneçam runtime ARM hard-float, SDL2 e
-GLES2/GLES3; esses alvos adicionais são compatíveis, mas não são anunciados
-como testes físicos. A rota X5M é recusada em outros SoCs AArch64.
+Validação física concluída no NextOS R2 com Mali-450, no ArkOS/R36S com
+Mali-G31 e no muOS/RG 40XX-H com o loader ARMHF de glibc baixa. No muOS, o
+launcher usou os módulos ALSA, PipeWire e SPA de 32 bits do firmware; gameplay,
+áudio claro e encerramento limpo passaram sem underruns, bytes ausentes ou
+falhas de áudio registradas. No NextOS/X5M com Mali-G310, a rota final completou
+11.034 frames de gameplay e 6.213 frames após reabrir, ambos RC0, com
+criação/atualização/carga de save, áudio e controle físico aprovados. Ela exige
+o perfil Box64 restrito `DYNAREC=1`, `BIGBLOCK=0`, `SAFEFLAGS=2`; o modo eager
+experimental não é usado.
+A rota ARMHF também foi estruturada para outros firmwares da classe PortMaster
+que forneçam runtime ARM hard-float, SDL2 e GLES2/GLES3; esses outros alvos são
+compatíveis, mas não são anunciados como testes físicos. A rota X5M é recusada
+em outros SoCs AArch64.
 
 ### Instalação com seus próprios dados Android
 
@@ -156,6 +165,8 @@ O NXExtract valida os hashes dos contêineres e OBBs suportados, confirma os
 bytes exatos das bibliotecas nativas, repara o layout ZIP danificado conhecido,
 extrai layouts válidos sem executar o instalador Android, cria os dois
 catálogos da loja offline e só publica os resultados depois da validação.
+Quando um APK candidato é rejeitado, o log registra tamanho, SHA-256 e motivo
+exato sem expor o nome do arquivo do usuário nem seu caminho local.
 
 O APK reconstruído armazena os membros recuperados sem compressão. Assim o
 resultado permanece byte a byte idêntico entre firmwares com versões diferentes

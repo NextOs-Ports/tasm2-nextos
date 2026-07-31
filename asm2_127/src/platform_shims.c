@@ -1,7 +1,7 @@
 #include "platform_shims.h"
 
 #include <SDL2/SDL.h>
-#if defined(__arm__)
+#if defined(__arm__) || defined(ASM2_TEST_EGL_FALLBACK)
 #include <EGL/egl.h>
 #endif
 #include <dlfcn.h>
@@ -11,10 +11,11 @@
 #include "util.h"
 
 static void *asm2_gl_extension(const char *name) {
-#if defined(__i386__)
+#if !defined(__arm__)
   /*
    * Box32's proven X5M path wraps SDL2 but not libGLESv2.  SDL returns an
-   * x86-callable bridge for the native context's GL entry point.
+   * x86-callable bridge for the native context's GL entry point.  Native
+   * host tests use the same resolver path.
    */
   void *function = SDL_GL_GetProcAddress(name);
 #else
@@ -23,6 +24,106 @@ static void *asm2_gl_extension(const char *name) {
   if (!function)
     function = dlsym(RTLD_DEFAULT, name);
   return function;
+}
+
+/*
+ * Resolve through the GL stack that SDL used for the current context first.
+ * This avoids crossing GLVND/Mesa/vendor EGL stacks on multi-CFW systems.
+ * Direct EGL and link-time lookup remain compatibility fallbacks.
+ */
+static void *asm2_gl_active_stack_alias(const char *extension_name,
+                                        const char *core_name,
+                                        const char **resolved_name) {
+  void *function = SDL_GL_GetProcAddress(extension_name);
+  if (function) {
+    if (resolved_name)
+      *resolved_name = extension_name;
+    return function;
+  }
+  function = SDL_GL_GetProcAddress(core_name);
+  if (function) {
+    if (resolved_name)
+      *resolved_name = core_name;
+    return function;
+  }
+#if defined(__arm__) || defined(ASM2_TEST_EGL_FALLBACK)
+  function = (void *)eglGetProcAddress(extension_name);
+  if (function) {
+    if (resolved_name)
+      *resolved_name = extension_name;
+    return function;
+  }
+  function = (void *)eglGetProcAddress(core_name);
+  if (function) {
+    if (resolved_name)
+      *resolved_name = core_name;
+    return function;
+  }
+#endif
+  function = dlsym(RTLD_DEFAULT, extension_name);
+  if (function) {
+    if (resolved_name)
+      *resolved_name = extension_name;
+    return function;
+  }
+  function = dlsym(RTLD_DEFAULT, core_name);
+  if (function) {
+    if (resolved_name)
+      *resolved_name = core_name;
+  }
+  return function;
+}
+
+void *ASM2_GUEST_PCS asm2_glMapBufferOES(GLenum target, GLenum access) {
+  typedef void *(*Function)(GLenum, GLenum);
+  static Function function;
+  static int reported_missing;
+  static int reported_success;
+  const char *resolved_name = NULL;
+
+  if (!function)
+    function = (Function)asm2_gl_active_stack_alias(
+        "glMapBufferOES", "glMapBuffer", &resolved_name);
+  if (function) {
+    if (!reported_success) {
+      debugPrintf("ASM2_GL_RESOLVE guest=glMapBufferOES host=%s\n",
+                  resolved_name ? resolved_name : "cached");
+      reported_success = 1;
+    }
+    return function(target, access);
+  }
+  if (!reported_missing) {
+    debugPrintf(
+        "ASM2_GL_MISSING guest=glMapBufferOES aliases=glMapBufferOES/glMapBuffer\n");
+    reported_missing = 1;
+  }
+  return NULL;
+}
+
+GLboolean ASM2_GUEST_PCS asm2_glUnmapBufferOES(GLenum target) {
+  typedef GLboolean (*Function)(GLenum);
+  static Function function;
+  static int reported_missing;
+  static int reported_success;
+  const char *resolved_name = NULL;
+
+  if (!function)
+    function = (Function)asm2_gl_active_stack_alias(
+        "glUnmapBufferOES", "glUnmapBuffer", &resolved_name);
+  if (function) {
+    if (!reported_success) {
+      debugPrintf("ASM2_GL_RESOLVE guest=glUnmapBufferOES host=%s\n",
+                  resolved_name ? resolved_name : "cached");
+      reported_success = 1;
+    }
+    return function(target);
+  }
+  if (!reported_missing) {
+    debugPrintf(
+        "ASM2_GL_MISSING guest=glUnmapBufferOES aliases=glUnmapBufferOES/glUnmapBuffer\n");
+    reported_missing = 1;
+  }
+  return GL_FALSE;
 }
 
 void ASM2_GUEST_PCS asm2_glCompressedTexImage3DOES(
