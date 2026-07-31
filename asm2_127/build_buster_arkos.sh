@@ -19,6 +19,7 @@ set -e
 CC=arm-linux-gnueabihf-gcc
 NM=arm-linux-gnueabihf-nm
 OD=arm-linux-gnueabihf-objdump
+STRIP=arm-linux-gnueabihf-strip
 REPO=/repo
 SR=/sysroot
 
@@ -28,7 +29,7 @@ if ! command -v "$CC" >/dev/null 2>&1; then
   printf 'deb http://archive.debian.org/debian-security buster/updates main\n' >> /etc/apt/sources.list
   apt-get -o Acquire::Check-Valid-Until=false update -qq >/dev/null
   apt-get install -y -qq gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf \
-                        binutils-arm-linux-gnueabihf >/dev/null
+                        binutils-arm-linux-gnueabihf file >/dev/null
 fi
 
 echo "CC: $($CC --version | head -1)"
@@ -71,6 +72,7 @@ gen '^gl[A-Z]' > "$STUB/gl.c";   $CC -shared -fPIC -nostdlib -Wl,-soname,libGLES
 #    --export-dynamic (o so-loader resolve simbolos a partir do executavel).
 $CC -no-pie -Wl,--export-dynamic -Wl,--no-as-needed -o asm2_127-universal $OBJS \
     -L"$STUB" -lSDL2 -lEGL -lGLESv2 -ldl -lm -lpthread
+$STRIP --strip-unneeded asm2_127-universal
 
 MAXV=$($OD -T asm2_127-universal 2>/dev/null | grep -oE 'GLIBC_[0-9.]+' | sort -uV | tail -1)
 echo "BUSTER BUILD OK -> asm2_127-universal"

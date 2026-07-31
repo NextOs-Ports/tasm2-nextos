@@ -5,7 +5,7 @@
 ### Supported owner inputs
 
 NXExtract identifies files by their contents, not by their external names.
-Release 1.1.5 accepts these exact Android containers:
+Release 1.1.6 accepts these exact Android containers:
 
 | Android input | SHA-256 | Runtime scope |
 |---|---|---|
@@ -80,7 +80,7 @@ preferences and cache.
 ### Dados do usuário suportados
 
 O NXExtract identifica os arquivos pelo conteúdo, não pelo nome externo. A
-release 1.1.5 aceita estes contêineres Android exatos:
+release 1.1.6 aceita estes contêineres Android exatos:
 
 | Insumo Android | SHA-256 | Escopo de runtime |
 |---|---|---|

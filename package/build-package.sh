@@ -247,10 +247,10 @@ if readelf -d "$X86_LOADER" | grep -Eq '[(](RPATH|RUNPATH)[)]'; then
 fi
 
 [[ "$(sha256sum "$NEXTOS_BIN" | awk '{print $1}')" == \
-  14bdb04a7e908d7c3d03fe0dbe89eb29359b8374e23d582d0a48498f79d09016 ]] ||
+  3c43323ff73ad6a1772ff678f86add21095b09dbed4ca110ffddf397af44730d ]] ||
   fail "NextOS loader hash changed"
 [[ "$(sha256sum "$PORTMASTER_BIN" | awk '{print $1}')" == \
-  6297e7ad1fb296048db21e9105f4b76619ecfa2a6f873286dc35abe6a72bd044 ]] ||
+  1020210a66a14025129e9d443e5c7d4118d133fdff08fd0f86ae8ce528e48f82 ]] ||
   fail "PortMaster loader hash changed"
 [[ "$(sha256sum "$NX_UI" | awk '{print $1}')" == \
   046afb583f5a211c946495e639409f81d9cfec706788eeccb7924b0e8e5a50b6 ]] ||
@@ -307,6 +307,28 @@ if grep -En \
     "$STAGE/The Amazing Spider-Man 2.sh" "$STAGE/asm2_127/run.sh"; then
   fail "launcher must not force an SDL audio backend"
 fi
+grep -Eq '^[[:space:]]*PORT_32BIT="Y"[[:space:]]*$' \
+  "$STAGE/The Amazing Spider-Man 2.sh" ||
+  fail "outer launcher lacks the literal muOS ARMHF marker"
+for armhf_audio_contract in \
+  'configure_arm_audio_runtime()' \
+  'export PORT_32BIT=Y' \
+  '/usr/lib32' \
+  'libasound_module_pcm_pipewire.so' \
+  'configure_arm_audio_runtime /'; do
+  grep -Fq "$armhf_audio_contract" "$STAGE/asm2_127/run.sh" ||
+    fail "ARMHF audio environment contract is missing: $armhf_audio_contract"
+done
+for source_diagnostic_contract in \
+  'ASM2 source scan begin:' \
+  'reason=unsupported-size' \
+  'reason=sha256-mismatch' \
+  'ASM2 source scan summary:' \
+  'ASM2 supported source profile='; do
+  grep -Fq "$source_diagnostic_contract" \
+    "$STAGE/asm2_127/tools/prepare_asm2_data.py" ||
+    fail "owner-source diagnostic contract is missing: $source_diagnostic_contract"
+done
 if grep -En \
     '^[[:space:]]*(export[[:space:]]+)?SDL_(VIDEODRIVER|VIDEO_DRIVER|KMSDRM_DEVICE_INDEX|KMSDRM_REQUIRE_DRM_MASTER)=' \
     "$STAGE/The Amazing Spider-Man 2.sh"; then
@@ -468,7 +490,7 @@ if game.findtext("image") != "./asm2_127/screenshot.png":
 
 with open(sys.argv[3], encoding="utf-8") as stream:
     provenance = json.load(stream)
-if provenance.get("package_version") != "1.1.5":
+if provenance.get("package_version") != "1.1.6":
     raise SystemExit("build provenance package version is invalid")
 with open(sys.argv[4], encoding="utf-8") as stream:
     package_version = stream.read().strip()
@@ -591,9 +613,36 @@ for release_check in (
     "x5m_extractor_firmware_sdl_kmsdrm_physical",
     "mali450_full_extraction_and_exact_package_smoke",
     "r36s_full_extraction_and_exact_package_smoke",
+    "armhf_muos_lib32_audio_environment_contract",
+    "owner_source_diagnostic_logging_contract",
 ):
     if validation.get(release_check) is not True:
         raise SystemExit(f"universal release check is not recorded: {release_check}")
+muos_audio = validation.get("muos_rg40xxh_armhf_audio_physical", {})
+if (
+    muos_audio.get("passed") is not True
+    or muos_audio.get("candidate") != "1.1.6-rc2"
+    or muos_audio.get("firmware") != "muOS"
+    or muos_audio.get("hardware") != "RG 40XX-H"
+    or muos_audio.get("loader") != "bin/asm2-portmaster-armhf"
+    or muos_audio.get("module_roots") != {
+        "pipewire": "/usr/lib32/pipewire-0.3",
+        "spa": "/usr/lib32/spa-0.2",
+        "alsa": "/usr/lib32/alsa-lib",
+    }
+    or muos_audio.get("opensl_driver") != "alsa"
+    or muos_audio.get("alsa_device") != "audiocodec"
+    or muos_audio.get("format") != "32000/2/S16LE"
+    or muos_audio.get("buffers") != "2/2"
+    or muos_audio.get("callbacks_observed", 0) < 6222
+    or muos_audio.get("underruns") != 0
+    or muos_audio.get("missing_bytes") != 0
+    or muos_audio.get("failures") != 0
+    or muos_audio.get("gameplay_frames", 0) < 4782
+    or muos_audio.get("audio_report") != "clear"
+    or muos_audio.get("clean_shutdown") is not True
+):
+    raise SystemExit("muOS RG 40XX-H ARMHF audio proof is incomplete")
 
 owner_x86 = provenance.get("owner_extracted_x86_library", {})
 if owner_x86.get("included_in_public_zip") is not False:

@@ -1,5 +1,47 @@
 # Changelog
 
+## 1.1.6
+
+- Resolves ARMHF GLES imports on Mesa/ROCKNIX by looking up
+  `glMapBufferOES` and `glUnmapBufferOES` lazily, with their GLES core names
+  as compatible aliases. The existing i386/Box32 route remains unchanged.
+- Marks the PortMaster entry point as a 32-bit port and selects the firmware's
+  existing ARMHF ALSA, PipeWire and SPA module directories without bundling
+  firmware libraries or forcing an SDL audio driver.
+- A physical RG 40XX-H running muOS completed gameplay with clear ALSA audio
+  and clean shutdown. The recorded run reached 6,222 audio callbacks with zero
+  underruns, missing bytes or failures.
+- Adds privacy-safe owner-source diagnostics: rejected direct APK candidates
+  now report byte size, SHA-256 and the precise rejection reason without
+  exposing filenames, source sites or local paths.
+
+## 1.1.6-rc3
+
+- Keeps the ROCKNIX GLES compatibility and muOS ARMHF audio environment fixes
+  from the two previous release candidates.
+- Logs every direct APK candidate's byte size, SHA-256 and precise rejection
+  reason before the preparation hook exits.
+- Logs accepted and supported profile identifiers without exposing the
+  owner's filename, source site or local path.
+
+## 1.1.6-rc2
+
+- Keeps the ARMHF GLES OES/core compatibility fix from `1.1.6-rc1`.
+- Marks the PortMaster entry point as a 32-bit port so muOS can prepare its
+  ARMHF PipeWire and SPA runtime before launch.
+- Selects existing ARMHF ALSA, PipeWire and SPA module directories when the
+  firmware provides them. No firmware audio library is bundled and no SDL
+  audio driver is forced.
+
+## 1.1.6-rc1
+
+- Resolves the ARMHF guest imports `glMapBufferOES` and
+  `glUnmapBufferOES` lazily through the GLES stack selected by SDL.
+- Tries the OES entry points first and then their GLES core aliases, covering
+  Mesa/ROCKNIX stacks that do not export the OES names at link time.
+- Keeps the existing i386/Box32 route unchanged. This candidate is intended
+  for focused physical validation before a stable release.
+
 ## 1.1.5
 
 - Accepts four audited owner-input profiles: two Android 1.2.7d APK layouts,

@@ -178,27 +178,142 @@ def find_source_package(
         profiles_by_size.setdefault(profile.source_size, []).append(profile)
 
     candidates: list[tuple[SourceProfile, Path]] = []
-    for directory in (game_dir / "gamedata", game_dir):
-        if directory.is_symlink() or not directory.is_dir():
+    candidate_count = 0
+    hashed_count = 0
+    accepted_file_count = 0
+    skipped_file_count = 0
+    skipped_link_count = 0
+    read_error_count = 0
+    supported_sizes = ",".join(
+        str(size) for size in sorted(profiles_by_size)
+    )
+
+    print(
+        f"ASM2 source scan begin: target_abi={target_abi} "
+        f"supported_profiles={len(SOURCE_PROFILES)}",
+        flush=True,
+    )
+    for location, directory in (
+        ("gamedata", game_dir / "gamedata"),
+        ("port-root", game_dir),
+    ):
+        try:
+            if directory.is_symlink():
+                print(
+                    f"ASM2 source scan location={location} "
+                    "status=skipped-symlink-directory",
+                    flush=True,
+                )
+                continue
+            if not directory.is_dir():
+                print(
+                    f"ASM2 source scan location={location} "
+                    "status=missing-directory",
+                    flush=True,
+                )
+                continue
+            entries = sorted(
+                directory.iterdir(), key=lambda item: item.name.casefold()
+            )
+        except OSError:
+            read_error_count += 1
+            print(
+                f"ASM2 source scan location={location} "
+                "status=directory-read-error",
+                flush=True,
+            )
             continue
-        for entry in sorted(directory.iterdir(), key=lambda item: item.name.casefold()):
+
+        for entry in entries:
             try:
-                if entry.is_symlink() or not entry.is_file():
+                if entry.is_symlink():
+                    skipped_link_count += 1
                     continue
-                profiles = profiles_by_size.get(entry.stat().st_size, [])
+                if not entry.is_file():
+                    continue
+                actual_size = entry.stat().st_size
             except OSError:
+                read_error_count += 1
                 continue
+
+            profiles = profiles_by_size.get(actual_size, [])
+            is_apk_name = entry.suffix.casefold() == ".apk"
+            if not profiles and not is_apk_name:
+                skipped_file_count += 1
+                continue
+
+            candidate_count += 1
+            candidate_label = f"{location}#{candidate_count}"
+            try:
+                actual_digest = sha256_file(entry)
+            except OSError:
+                read_error_count += 1
+                print(
+                    f"ASM2 source candidate={candidate_label} "
+                    f"size={actual_size} status=read-error",
+                    flush=True,
+                )
+                continue
+            hashed_count += 1
+            print(
+                f"ASM2 source candidate={candidate_label} "
+                f"size={actual_size} sha256={actual_digest}",
+                flush=True,
+            )
+
             if not profiles:
+                print(
+                    f"ASM2 source candidate={candidate_label} status=rejected "
+                    f"reason=unsupported-size supported_sizes={supported_sizes}",
+                    flush=True,
+                )
                 continue
-            actual_digest = sha256_file(entry)
-            for profile in profiles:
-                if actual_digest == profile.source_sha256:
-                    candidates.append((profile, entry))
+
+            matched_profiles = [
+                profile
+                for profile in profiles
+                if actual_digest == profile.source_sha256
+            ]
+            if not matched_profiles:
+                print(
+                    f"ASM2 source candidate={candidate_label} status=rejected "
+                    "reason=sha256-mismatch size_matched_profiles="
+                    + ",".join(profile.identifier for profile in profiles),
+                    flush=True,
+                )
+                continue
+
+            accepted_file_count += 1
+            print(
+                f"ASM2 source candidate={candidate_label} status=accepted "
+                "profiles="
+                + ",".join(profile.identifier for profile in matched_profiles),
+                flush=True,
+            )
+            for profile in matched_profiles:
+                candidates.append((profile, entry))
+
+    print(
+        f"ASM2 source scan summary: candidates={candidate_count} "
+        f"hashed={hashed_count} accepted={accepted_file_count} "
+        f"skipped_non_candidates={skipped_file_count} "
+        f"skipped_links={skipped_link_count} read_errors={read_error_count}",
+        flush=True,
+    )
 
     if not candidates:
+        for profile in SOURCE_PROFILES:
+            print(
+                f"ASM2 supported source profile={profile.identifier} "
+                f"size={profile.source_size} sha256={profile.source_sha256} "
+                f"abi_scope={'ARMv7+x86' if profile.has_x86 else 'ARM32-only'}",
+                flush=True,
+            )
         raise RuntimeError(
             "no supported owner-supplied ASM2 Android 1.2.7d/1.2.8d "
-            "APK or installer was found in gamedata"
+            "APK or installer was found; "
+            f"inspected {candidate_count} candidate(s), accepted 0 "
+            "(see ASM2 source scan lines)"
         )
 
     if target_abi == "x86":

@@ -16,7 +16,7 @@ NXEXTRACT_UPSTREAM_PY_SHA256=32cd5ed702ba2a0abfe1b63cb086e442675178d4beffccfdf6d
 NXEXTRACT_DOWNSTREAM_PY_SHA256=fc21745f059a926a67b2d5ee7217dc680118adcc90d015d8d74f3445d81178f4
 GCC_EXCEPTION_SHA256=9d6b43ce4d8de0c878bf16b54d8e7a10d9bd42b75178153e3af6a815bdc90f74
 
-VERSION=1.1.5
+VERSION=1.1.6
 SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH:-1785369600}
 PORT_SOURCE=
 PACKAGE_SOURCE=
@@ -54,7 +54,7 @@ Optional:
   --box64-patch-sha256 HASH expected hash (mandatory with --release)
   --i386-loader-sha256 HASH packaged i386 loader hash (mandatory with --release)
   --box32-runtime-sha256 HASH packaged Box32 hash (mandatory with --release)
-  --version VERSION         source package version (default: 1.1.5)
+  --version VERSION         source package version (default: 1.1.6)
   --release                 require an immutable clean 40-hex port revision
   --help
 EOF

@@ -184,6 +184,14 @@ DynLibFunction dynlib_functions[] = {
     ASM2_IMPORT("glTexParameterf", asm2_sf_glTexParameterf),
     ASM2_IMPORT("glUniform1f", asm2_sf_glUniform1f),
     ASM2_IMPORT("glVertexAttrib4f", asm2_sf_glVertexAttrib4f),
+    /*
+     * Some Mesa/ROCKNIX GLES stacks expose OES_mapbuffer only through the
+     * active SDL/EGL procedure resolver, or expose the GLES3 core names
+     * without the OES suffix.  Bind guest imports to lazy wrappers so strong
+     * relocation can finish before the SDL context exists.
+     */
+    ASM2_IMPORT("glMapBufferOES", asm2_glMapBufferOES),
+    ASM2_IMPORT("glUnmapBufferOES", asm2_glUnmapBufferOES),
 #elif defined(__i386__)
     /*
      * Box32 has no dedicated libGLESv2 wrapper on the X5M route.  Each import
