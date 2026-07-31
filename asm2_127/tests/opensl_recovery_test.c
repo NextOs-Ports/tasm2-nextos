@@ -19,6 +19,37 @@ enum {
   SL_BYTEORDER_LITTLEENDIAN = 2,
 };
 
+#if defined(ASM2_TEST_WRAP_SDL_AUDIO_INIT)
+static int test_audio_init_calls;
+static int test_alsa_fallback_seen;
+
+int __real_SDL_InitSubSystem(Uint32 flags);
+
+int __wrap_SDL_InitSubSystem(Uint32 flags) {
+  if ((flags & SDL_INIT_AUDIO) == 0)
+    return __real_SDL_InitSubSystem(flags);
+
+  ++test_audio_init_calls;
+  if (test_audio_init_calls == 1) {
+    SDL_SetError("simulated unavailable automatic audio service");
+    return -1;
+  }
+
+  const char *driver = getenv("SDL_AUDIODRIVER");
+  if (driver && strcmp(driver, "alsa") == 0) {
+    test_alsa_fallback_seen = 1;
+    if (setenv("SDL_AUDIODRIVER", "dummy", 1) != 0)
+      return -1;
+    const int result = __real_SDL_InitSubSystem(flags);
+    if (setenv("SDL_AUDIODRIVER", "alsa", 1) != 0)
+      return -1;
+    return result;
+  }
+
+  return __real_SDL_InitSubSystem(flags);
+}
+#endif
+
 struct sl_source {
   const void *locator;
   const void *format;
@@ -176,8 +207,18 @@ static void self_destroy_callback(void *queue, void *opaque) {
 }
 
 int main(void) {
+#if defined(ASM2_TEST_WRAP_SDL_AUDIO_INIT)
+#if defined(ASM2_TEST_INHERITED_PULSEAUDIO)
+  require(setenv("SDL_AUDIODRIVER", "pulseaudio", 1) == 0,
+          "simulate the inherited ROCKNIX PulseAudio selection");
+#else
+  require(unsetenv("SDL_AUDIODRIVER") == 0,
+          "leave SDL automatic audio selection enabled");
+#endif
+#else
   require(setenv("SDL_AUDIODRIVER", "dummy", 1) == 0,
           "select SDL dummy audio driver");
+#endif
 
   void *engine_object = NULL;
   require(asm2_slCreateEngine(&engine_object, 0, NULL, 0, NULL, NULL) ==
@@ -396,6 +437,12 @@ int main(void) {
               stats.workers_started == 3 && stats.workers_exited == 3 &&
               stats.self_deferred_destroys == 1,
           "all players and callback workers were released exactly once");
+
+#if defined(ASM2_TEST_WRAP_SDL_AUDIO_INIT)
+  require(test_alsa_fallback_seen &&
+              strcmp(getenv("SDL_AUDIODRIVER"), "alsa") == 0,
+          "automatic audio failure retried through ALSA exactly as scoped");
+#endif
 
   ((sl_destroy_fn)engine_object_vtable[6])(engine_object);
   puts("OpenSL recovery: starvation, lifecycle and teardown ownership OK");

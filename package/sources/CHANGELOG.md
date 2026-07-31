@@ -1,5 +1,43 @@
 # Changelog
 
+## 1.1.7
+
+- Keeps SDL's inherited audio selection as the first choice on the external
+  low-glibc ARMHF build. If automatic or inherited PulseAudio initialization
+  fails inside that process, the OpenSL bridge retries once through the
+  firmware's ALSA route. Arbitrary explicit diagnostic drivers remain
+  untouched.
+- Passed physical RG-DS validation on ROCKNIX with Panfrost, Wayland and Mesa
+  26.1.2. The fallback opened the RK817 ALSA output and the owner reported
+  clear audio; the recorded run completed 2,197 callbacks with one startup
+  underrun (4,096 missing bytes), zero audio failures and clean shutdown.
+- Records the ROCKNIX/Wayland first-install display limitation: NXExtract can
+  complete its greater-than-1-GiB transaction while the screen remains black.
+  Leave the device running and wait for the game; progress remains available
+  in `debug.log`.
+- Leaves the physically validated current NextOS ARMHF and X5M Box32
+  executables byte-identical to release 1.1.6.
+
+## 1.1.7-rc2
+
+- Recognizes ROCKNIX's inherited `SDL_AUDIODRIVER=pulseaudio` selection as a
+  server backend eligible for the existing ALSA retry when its connection
+  fails inside the ARMHF process.
+- Keeps arbitrary explicit diagnostic driver choices untouched and leaves the
+  current NextOS ARMHF and X5M Box32 binaries unchanged.
+- Replaces RC1, whose conservative explicit-driver guard correctly diagnosed
+  PulseAudio but prevented the intended fallback from running.
+
+## 1.1.7-rc1
+
+- Keeps SDL's inherited audio selection as the first choice on the external
+  ARMHF build. If that initialization fails and no explicit driver override
+  exists, the OpenSL bridge retries once through the firmware's ALSA route.
+- Targets the observed ROCKNIX ARM32 failure where PulseAudio could not be
+  reached while gameplay and Wayland/Mesa video remained healthy.
+- Leaves the current NextOS ARMHF and X5M Box32 binaries unchanged. This
+  candidate is pending focused physical audio validation on ROCKNIX.
+
 ## 1.1.6
 
 - Resolves ARMHF GLES imports on Mesa/ROCKNIX by looking up

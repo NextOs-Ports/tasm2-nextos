@@ -3,7 +3,7 @@
 **Language / Idioma:** [English](#english) · [Português](#português)
 
 This directory targets the exact Android **1.2.7d native runtime** (`versionCode
-12723`, package `com.gameloft.android.ANMP.GloftASHM`). Release 1.1.6 accepts
+12723`, package `com.gameloft.android.ANMP.GloftASHM`). Release 1.1.7 accepts
 four audited Android 1.2.7d/1.2.8d owner containers that carry that same exact
 runtime. Other APK, native-library and expansion variants are not
 interchangeable.
@@ -15,7 +15,7 @@ supported self-contained 1.2.8d input has ARMv7 data only and is therefore
 limited to ARM32/multilib systems.
 
 Este diretório usa o **runtime nativo Android 1.2.7d** exato (`versionCode
-12723`, pacote `com.gameloft.android.ANMP.GloftASHM`). A release 1.1.6 aceita
+12723`, pacote `com.gameloft.android.ANMP.GloftASHM`). A release 1.1.7 aceita
 quatro contêineres Android 1.2.7d/1.2.8d auditados que carregam exatamente esse
 mesmo runtime. Outras variantes de APK, biblioteca nativa e expansões não podem
 ser misturadas.
@@ -37,10 +37,11 @@ i386 loader runs the original `libtasm2-x86.so` through Box32 and
 `sdl2-compat`. Both routes supply the Bionic, JNI, lifecycle, storage, audio,
 video and input surfaces required by this exact game binary.
 
-Status: **PLAYABLE on all three physical target classes.** Fresh-profile
-gameplay, checkpoint creation, save reload, controls, audio and clean shutdown
-were verified on NextOS/Mali-450, ArkOS/R36S and NextOS/X5M. A fresh data tree
-completed the original legal/terms, update-notice, native cloud-data notice and
+Status: **PLAYABLE on every physically validated route.** Gameplay, controls,
+audio and clean shutdown were verified on NextOS/Mali-450, ArkOS/R36S,
+muOS/RG 40XX-H, ROCKNIX/RG-DS and NextOS/X5M; the original target matrix also
+passed checkpoint creation and save reload. A fresh data tree completed the
+original legal/terms, update-notice, native cloud-data notice and
 controller-title flow before entering the first level. The notice does not
 request a mandatory download and disappears after the profile completes the
 first-run sequence.
@@ -120,6 +121,7 @@ Their Android callbacks return safe offline values or no-op where appropriate.
 | crash when a controller connects during startup | the controller listener reaches engine objects created by the first GL frame | render one warm frame before opening the SDL controller |
 | audio can remain silent after a transition | the original two-buffer stream can reach an empty absorbing state when a completion callback misses its refill window | timed one-at-a-time refill recovery, reusable PCM buffers and high-priority best-effort callback worker |
 | audio teardown can deadlock or outlive its guest context | the 1.2.7d destructor holds the mixer mutex across `Destroy`, while the completion callback needs that same mutex | version-checked mutex handoff, synchronous external join and worker-owned cleanup only for self-destruction |
+| ROCKNIX ARMHF gameplay has no audio | its 32-bit SDL inherits PulseAudio, but that server is unavailable to the ARMHF process while the firmware's RK817 ALSA route remains usable | on the external low-glibc build only, preserve the inherited choice first and retry ALSA once after automatic or inherited PulseAudio initialization fails |
 | Android paths absent | the engine uses `/sdcard`, app-private data, cache, APK and OBB paths | map Android storage prefixes into the local `gamefiles/` tree |
 | first-run settings lost after exit | Android `DataSharing` normally persists through Java | mutex-serialized bounded binary store with CRC, atomic temporary-file/rename commit, identical-value suppression and rollback on write failure |
 | first-run dialogs cannot both close | the offline data notice and `UI_FIRST_CHECK` use the same `ConfirmBoxSYS` in one frame, so the later callback replaces the visible dialog's callback | defer only the second builder, then restore the original version-checked guest instruction and let the game create it on the next frame |
@@ -152,7 +154,11 @@ reports expose process memory/swap, active-registry growth, JNI allocation and
 graphics-fence fallbacks without scanning the process heap.
 
 The launcher discovers an available PulseAudio socket and otherwise leaves SDL
-to select the system audio backend and default output device.
+to select the system audio backend and default output device. On the external
+low-glibc ARMHF build only, the OpenSL bridge retries ALSA once if automatic or
+inherited PulseAudio initialization fails. Arbitrary explicit diagnostic driver
+choices remain untouched, and the current NextOS ARMHF and X5M binaries do not
+enable this fallback.
 
 ### Controls
 
@@ -197,11 +203,13 @@ Keyboard fallback:
 
 ### Hardware release validation
 
-Fresh-profile and existing-profile runs reached gameplay on all three physical
-targets:
+Physical gameplay validation covers:
 
 - NextOS/Mali-450 using the current NextOS ARMHF sysroot build;
-- ArkOS/R36S using the separately authorized low-glibc ARMHF build; and
+- ArkOS/R36S using the separately authorized low-glibc ARMHF build;
+- muOS/RG 40XX-H using the firmware's 32-bit ALSA, PipeWire and SPA modules;
+- ROCKNIX/RG-DS using Panfrost, Wayland, Mesa 26.1.2 and the scoped ALSA
+  fallback; and
 - NextOS/X5M/Mali-G310 using the aligned i386 loader, the scoped Box32 dynarec
   profile and KMSDRM/GLES.
 
@@ -210,6 +218,21 @@ reopen, both with exit code zero. It created, updated and reloaded the save,
 kept audio free of callback failures and used the physical controller. The ARM
 targets likewise completed the native first-run sequence, progressive loading,
 gameplay and save reload.
+
+On ROCKNIX/RG-DS, PulseAudio failed before opening an audio device. The
+failure-triggered retry opened
+`rk817_ext, fe410000.i2s-rk817-hifi rk817-hifi-0` through ALSA at 32 kHz,
+stereo S16LE with both buffers queued. The physical run completed 2,197 audio
+callbacks, one startup underrun representing 4,096 missing bytes, zero audio
+failures and a clean shutdown after 1,550 gameplay frames; the owner reported
+clear audio.
+
+The same clean ROCKNIX/Wayland installation did not present the NXExtract
+progress UI: the display remained black while more than 1 GiB was prepared.
+The log nevertheless recorded complete validation and transactional
+publication before gameplay started. This is a display limitation during the
+first preparation, not an extraction failure; leave the device running and
+follow `debug.log` when visual progress is absent.
 
 Across those runs:
 
@@ -420,9 +443,10 @@ loader i386 separado executa a `libtasm2-x86.so` original por Box32 e
 `sdl2-compat`. As duas rotas fornecem somente as superfícies Bionic, JNI, ciclo
 de vida, armazenamento, áudio, vídeo e entrada exigidas pelo binário exato.
 
-Estado: **JOGÁVEL nas três classes físicas de teste.** Perfil novo, gameplay,
-checkpoint, recarga do save, controles, áudio e encerramento limpo foram
-validados no NextOS/Mali-450, ArkOS/R36S e NextOS/X5M. Partindo de dados novos,
+Estado: **JOGÁVEL em todas as rotas validadas fisicamente.** Gameplay,
+controles, áudio e encerramento limpo foram validados no NextOS/Mali-450,
+ArkOS/R36S, muOS/RG 40XX-H, ROCKNIX/RG-DS e NextOS/X5M; a matriz original
+também passou criação de checkpoint e recarga do save. Partindo de dados novos,
 o jogo segue termos legais, aviso de atualização, aviso nativo de dados na
 nuvem, controles, carregamento progressivo e primeira fase. Esse aviso não
 exige download e deixa de aparecer depois que o perfil conclui o fluxo inicial.
@@ -502,6 +526,7 @@ quando apropriado.
 | crash ao conectar o controle no início | o listener alcança objetos da engine criados somente no primeiro frame GL | renderizar um frame de aquecimento antes de abrir o controle SDL |
 | áudio pode permanecer mudo após uma transição | o stream original de dois buffers pode cair num estado vazio absorvente quando um callback perde a janela de refill | recuperação temporizada de um refill por vez, buffers PCM reutilizáveis e worker em prioridade alta best-effort |
 | teardown de áudio pode travar ou sobreviver ao contexto guest | o destrutor 1.2.7d segura o mutex do mixer durante `Destroy`, enquanto o callback precisa do mesmo mutex | handoff de mutex conferido por versão, join externo síncrono e cleanup pelo worker somente na autodestruição |
+| gameplay ARMHF fica sem áudio no ROCKNIX | a SDL de 32 bits herda PulseAudio, mas esse servidor não está acessível ao processo ARMHF enquanto a rota ALSA RK817 do firmware funciona | somente no build externo de glibc baixa, preservar primeiro a escolha herdada e tentar ALSA uma vez após falha da inicialização automática ou do PulseAudio herdado |
 | paths Android inexistentes | a engine usa `/sdcard`, dados privados, cache, APK e OBB | mapear os prefixos Android para a árvore local `gamefiles/` |
 | preferências do primeiro início somem ao sair | no Android o `DataSharing` persiste via Java | store binário limitado e serializado por mutex, CRC, commit atômico por temporário/rename, supressão de valor idêntico e rollback em falha |
 | os dois diálogos iniciais não podem ser fechados | o aviso offline de dados e `UI_FIRST_CHECK` usam o mesmo `ConfirmBoxSYS` no mesmo frame, então o callback posterior substitui o callback do diálogo visível | adiar somente o segundo builder, restaurar a instrução original conferida por versão e deixar o jogo criá-lo no frame seguinte |
@@ -534,7 +559,11 @@ de runtime a cada quinze segundos mostram memória/swap, crescimento dos
 registros, alocações JNI e fallbacks de fences gráficos sem varrer o heap.
 
 O launcher detecta um socket PulseAudio disponível e, caso não encontre, deixa
-o SDL escolher o backend e a saída de áudio padrão do sistema.
+o SDL escolher o backend e a saída de áudio padrão do sistema. Somente no build
+ARMHF externo de glibc baixa, o bridge OpenSL tenta ALSA uma vez se a
+inicialização automática ou do PulseAudio herdado falhar. Escolhas explícitas
+de diagnóstico permanecem intactas, e os binários atuais ARMHF NextOS e X5M
+não ativam esse fallback.
 
 ### Controles
 
@@ -579,17 +608,34 @@ Fallback de teclado:
 
 ### Validação física de release
 
-Perfil novo e perfil existente chegaram à gameplay nos três alvos físicos:
+A validação física de gameplay cobre:
 
 - NextOS/Mali-450 com build ARMHF do sysroot NextOS atual;
-- ArkOS/R36S com a variante ARMHF de glibc baixa; e
+- ArkOS/R36S com a variante ARMHF de glibc baixa;
+- muOS/RG 40XX-H com os módulos ALSA, PipeWire e SPA de 32 bits do firmware;
+- ROCKNIX/RG-DS com Panfrost, Wayland, Mesa 26.1.2 e fallback ALSA restrito; e
 - NextOS/X5M/Mali-G310 com loader i386 alinhado, Box32 e KMSDRM/GLES.
 
 No X5M, a validação final completou 11.034 frames de gameplay e 6.213 frames
 após reabrir, ambos com saída zero. O save foi criado, atualizado e recarregado,
-o áudio não teve falhas de callback e o controle físico funcionou. Os dois
-alvos ARM também concluíram o fluxo inicial nativo, carregamento progressivo,
+o áudio não teve falhas de callback e o controle físico funcionou. Os alvos
+ARM também concluíram o fluxo inicial nativo, carregamento progressivo,
 gameplay e recarga do save.
+
+No ROCKNIX/RG-DS, o PulseAudio falhou antes de abrir um dispositivo. A nova
+tentativa abriu
+`rk817_ext, fe410000.i2s-rk817-hifi rk817-hifi-0` por ALSA em 32 kHz,
+estéreo S16LE, com os dois buffers enfileirados. A execução física completou
+2.197 callbacks, um underrun inicial correspondente a 4.096 bytes ausentes,
+zero falhas de áudio e encerramento limpo após 1.550 frames; o dono informou
+áudio claro.
+
+Nessa mesma instalação limpa no ROCKNIX/Wayland, a interface de progresso do
+NXExtract não apareceu: a tela permaneceu preta enquanto mais de 1 GiB era
+preparado. O log registrou validação completa e publicação transacional antes
+do gameplay. Isso é uma limitação visual da primeira preparação, não uma falha
+de extração; deixe o aparelho ligado e acompanhe `debug.log` quando não houver
+progresso visível.
 
 Em conjunto, os testes observaram:
 

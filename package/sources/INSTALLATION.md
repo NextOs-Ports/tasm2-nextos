@@ -26,6 +26,11 @@ the x86 game library.
 Do not unpack or modify OBBs or the cache ZIP. Start the game from Ports and
 let NXExtract validate and prepare the set.
 
+On ROCKNIX/Wayland, the first greater-than-1-GiB preparation can remain black
+instead of showing the NXExtract progress UI. Extraction is still active: do
+not power off; wait for the game to start. Detailed progress remains in
+`debug.log`.
+
 ## Português
 
 Coloque um conjunto pertencente ao usuário e suportado em
@@ -52,3 +57,8 @@ do jogo.
 
 Não abra, modifique nem extraia os OBBs ou o cache ZIP. Abra o jogo em Ports e
 deixe o NXExtract validar e preparar o conjunto.
+
+No ROCKNIX/Wayland, a primeira preparação de mais de 1 GiB pode permanecer com
+a tela preta em vez de mostrar a interface de progresso do NXExtract. A
+extração continua ativa: não desligue; aguarde o jogo iniciar. O progresso
+detalhado permanece em `debug.log`.

@@ -5,7 +5,7 @@
 ### Supported owner inputs
 
 NXExtract identifies files by their contents, not by their external names.
-Release 1.1.6 accepts these exact Android containers:
+Release 1.1.7 accepts these exact Android containers:
 
 | Android input | SHA-256 | Runtime scope |
 |---|---|---|
@@ -66,6 +66,10 @@ self-contained installer, place that one file in `gamedata`.
 3. Launch **The Amazing Spider-Man 2** from Ports.
 4. Let NXExtract validate and prepare the inputs. The first preparation
    processes more than 1 GiB and can take several minutes on old storage.
+   On ROCKNIX/Wayland the screen can remain black instead of showing the
+   NXExtract progress UI. The process is still active: do not power off; wait
+   for the game to start. Progress remains available in
+   `ports/asm2_127/debug.log`.
 5. If the original legal screen appears, press one face/action button once.
 
 NXExtract validates content rather than trusting external names. A renamed
@@ -80,7 +84,7 @@ preferences and cache.
 ### Dados do usuário suportados
 
 O NXExtract identifica os arquivos pelo conteúdo, não pelo nome externo. A
-release 1.1.6 aceita estes contêineres Android exatos:
+release 1.1.7 aceita estes contêineres Android exatos:
 
 | Insumo Android | SHA-256 | Escopo de runtime |
 |---|---|---|
@@ -140,6 +144,10 @@ autocontido ARM32-only, coloque somente esse arquivo em `gamedata`.
 4. Aguarde o NXExtract validar e preparar os insumos. A primeira
    preparação processa mais de 1 GiB e pode levar vários minutos em
    armazenamento antigo.
+   No ROCKNIX/Wayland, a tela pode permanecer preta em vez de mostrar a
+   interface de progresso do NXExtract. O processo continua ativo: não
+   desligue; aguarde o jogo iniciar. O progresso permanece em
+   `ports/asm2_127/debug.log`.
 5. Se a tela legal original aparecer, pressione uma vez um botão frontal/de
    ação.
 
