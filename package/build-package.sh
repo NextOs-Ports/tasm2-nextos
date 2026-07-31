@@ -250,7 +250,7 @@ fi
   3c43323ff73ad6a1772ff678f86add21095b09dbed4ca110ffddf397af44730d ]] ||
   fail "NextOS loader hash changed"
 [[ "$(sha256sum "$PORTMASTER_BIN" | awk '{print $1}')" == \
-  1020210a66a14025129e9d443e5c7d4118d133fdff08fd0f86ae8ce528e48f82 ]] ||
+  939c2d985581d31a02c4cfc83c3121999fb2588ea936cc2731be4ecf8427cf9d ]] ||
   fail "PortMaster loader hash changed"
 [[ "$(sha256sum "$NX_UI" | awk '{print $1}')" == \
   046afb583f5a211c946495e639409f81d9cfec706788eeccb7924b0e8e5a50b6 ]] ||
@@ -490,7 +490,7 @@ if game.findtext("image") != "./asm2_127/screenshot.png":
 
 with open(sys.argv[3], encoding="utf-8") as stream:
     provenance = json.load(stream)
-if provenance.get("package_version") != "1.1.6":
+if provenance.get("package_version") != "1.1.7":
     raise SystemExit("build provenance package version is invalid")
 with open(sys.argv[4], encoding="utf-8") as stream:
     package_version = stream.read().strip()
@@ -643,6 +643,36 @@ if (
     or muos_audio.get("clean_shutdown") is not True
 ):
     raise SystemExit("muOS RG 40XX-H ARMHF audio proof is incomplete")
+
+rocknix_audio = validation.get("rocknix_rgds_armhf_audio_physical", {})
+if (
+    rocknix_audio.get("passed") is not True
+    or rocknix_audio.get("candidate") != "1.1.7-rc2"
+    or rocknix_audio.get("firmware") != "ROCKNIX"
+    or rocknix_audio.get("hardware") != "RG-DS"
+    or rocknix_audio.get("graphics_driver") != "Panfrost"
+    or rocknix_audio.get("video_driver") != "wayland"
+    or rocknix_audio.get("gles") != "OpenGL ES 3.1 Mesa 26.1.2"
+    or rocknix_audio.get("loader") != "bin/asm2-portmaster-armhf"
+    or rocknix_audio.get("inherited_server_driver") != "pulseaudio"
+    or rocknix_audio.get("primary_error") != "Could not connect to PulseAudio"
+    or rocknix_audio.get("fallback_driver") != "alsa"
+    or rocknix_audio.get("alsa_device") != (
+        "rk817_ext, fe410000.i2s-rk817-hifi rk817-hifi-0"
+    )
+    or rocknix_audio.get("format") != "32000/2/S16LE"
+    or rocknix_audio.get("buffers") != "2/2"
+    or rocknix_audio.get("callbacks_observed") != 2197
+    or rocknix_audio.get("underruns") != 1
+    or rocknix_audio.get("missing_bytes") != 4096
+    or rocknix_audio.get("failures") != 0
+    or rocknix_audio.get("gameplay_frames") != 1550
+    or rocknix_audio.get("audio_report") != "clear"
+    or rocknix_audio.get("clean_shutdown") is not True
+    or rocknix_audio.get("extractor_progress_ui_visible") is not False
+    or rocknix_audio.get("transactional_install_completed") is not True
+):
+    raise SystemExit("ROCKNIX RG-DS ARMHF audio proof is incomplete")
 
 owner_x86 = provenance.get("owner_extracted_x86_library", {})
 if owner_x86.get("included_in_public_zip") is not False:

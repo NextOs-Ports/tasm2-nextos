@@ -53,7 +53,7 @@ OBJS=""
 for f in $SRCS; do
   o="$OBJDIR/$(basename "$f").o"
   $CC -std=gnu11 -march=armv7-a -mfpu=neon -mfloat-abi=hard \
-      -D_GNU_SOURCE -Isrc \
+      -D_GNU_SOURCE -DASM2_ARMHF_AUDIO_ALSA_FALLBACK=1 -Isrc \
       -idirafter "$SR/usr/include/SDL2" -idirafter "$SR/usr/include" \
       -O2 -fPIC -fno-omit-frame-pointer \
       -Wall -Wextra -Wno-unused-parameter \

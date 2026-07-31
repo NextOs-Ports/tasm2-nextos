@@ -808,7 +808,7 @@ asm2_launcher_main() {
   acquire_launch_lock
   : > "$GAMEDIR/debug.log"
   exec > "$GAMEDIR/debug.log" 2>&1
-  printf '=== The Amazing Spider-Man 2 1.2.7d/1.2.8d | port 1.1.6 | %s ===\n' \
+  printf '=== The Amazing Spider-Man 2 1.2.7d/1.2.8d | port 1.1.7 | %s ===\n' \
     "$(date -Is 2>/dev/null || date)"
 
   for required_tool in od dd tr wc grep awk readlink; do

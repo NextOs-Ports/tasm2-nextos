@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "package_version": "1.1.6",
+  "package_version": "1.1.7",
   "target_game": {
     "android_version_names": [
       "1.2.7d",
@@ -40,9 +40,9 @@
     },
     "bin/asm2-portmaster-armhf": {
       "abi": "ELF32 ARM EABI5 hard-float",
-      "build_profile": "Debian Buster ARMHF compatibility build, strip --strip-unneeded",
+      "build_profile": "Debian Buster ARMHF compatibility build with failure-triggered ALSA retry, strip --strip-unneeded",
       "maximum_glibc": "2.27",
-      "sha256": "1020210a66a14025129e9d443e5c7d4118d133fdff08fd0f86ae8ce528e48f82"
+      "sha256": "939c2d985581d31a02c4cfc83c3121999fb2588ea936cc2731be4ecf8427cf9d"
     },
     "asm2_127_x86_box32": {
       "abi": "ELF32 i386 System V executable for Box32",
@@ -154,6 +154,39 @@
         "gameplay_frames": 4782,
         "audio_report": "clear",
         "clean_shutdown": true
+      },
+      "rocknix_rgds_armhf_audio_rc1": {
+        "candidate": "1.1.7-rc1",
+        "passed": false,
+        "observed_automatic_backend_failure": "Could not connect to PulseAudio",
+        "observed_inherited_driver": "pulseaudio",
+        "fallback_attempted": false,
+        "reason": "the conservative explicit-driver guard preserved the inherited firmware selection"
+      },
+      "rocknix_rgds_armhf_audio_physical": {
+        "passed": true,
+        "candidate": "1.1.7-rc2",
+        "firmware": "ROCKNIX",
+        "hardware": "RG-DS",
+        "graphics_driver": "Panfrost",
+        "video_driver": "wayland",
+        "gles": "OpenGL ES 3.1 Mesa 26.1.2",
+        "loader": "bin/asm2-portmaster-armhf",
+        "inherited_server_driver": "pulseaudio",
+        "primary_error": "Could not connect to PulseAudio",
+        "fallback_driver": "alsa",
+        "alsa_device": "rk817_ext, fe410000.i2s-rk817-hifi rk817-hifi-0",
+        "format": "32000/2/S16LE",
+        "buffers": "2/2",
+        "callbacks_observed": 2197,
+        "underruns": 1,
+        "missing_bytes": 4096,
+        "failures": 0,
+        "gameplay_frames": 1550,
+        "audio_report": "clear",
+        "clean_shutdown": true,
+        "extractor_progress_ui_visible": false,
+        "transactional_install_completed": true
       },
       "owner_source_diagnostic_logging_contract": true,
       "r36s_full_extraction_and_exact_package_smoke": true,

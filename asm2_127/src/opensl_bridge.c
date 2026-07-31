@@ -456,9 +456,80 @@ static void asm2_sl_sdl_audio_callback(void *userdata, Uint8 *stream,
   SDL_UnlockMutex(player->mutex);
 }
 
-static uint32_t asm2_sl_open_player(struct asm2_sl_player *player) {
+static int asm2_sl_initialize_audio_subsystem(void) {
+#if defined(ASM2_ARMHF_AUDIO_ALSA_FALLBACK)
+  const char *requested_driver = getenv("SDL_AUDIODRIVER");
+  char initial_error[256];
+  char primary_driver[32];
+#endif
+
+  if (SDL_InitSubSystem(SDL_INIT_AUDIO) == 0)
+    return 0;
+
+#if !defined(ASM2_ARMHF_AUDIO_ALSA_FALLBACK)
+  debugPrintf("ASM2_OPENSL SDL audio init failed: %s\n", SDL_GetError());
+  return -1;
+#else
+  const char *error = SDL_GetError();
+  if (!error)
+    error = "unknown SDL audio initialization error";
+  strncpy(initial_error, error, sizeof(initial_error) - 1);
+  initial_error[sizeof(initial_error) - 1] = '\0';
+
+  if (requested_driver && requested_driver[0]) {
+    strncpy(primary_driver, requested_driver, sizeof(primary_driver) - 1);
+    primary_driver[sizeof(primary_driver) - 1] = '\0';
+  } else {
+    strcpy(primary_driver, "automatic");
+  }
+
+  /* Preserve explicit diagnostic choices except for the inherited
+   * PulseAudio selection observed on ROCKNIX.  That firmware-selected server
+   * can be unavailable to its ARMHF process even though its ALSA route and
+   * 32-bit modules are usable. */
+  if (requested_driver && requested_driver[0] &&
+      strcmp(requested_driver, "pulse") != 0 &&
+      strcmp(requested_driver, "pulseaudio") != 0) {
+    debugPrintf("ASM2_OPENSL SDL audio init failed driver=%s: %s\n",
+                requested_driver, initial_error);
+    return -1;
+  }
+
+  if (setenv("SDL_AUDIODRIVER", "alsa", 1) != 0) {
+    debugPrintf("ASM2_OPENSL SDL audio primary init failed driver=%s: %s; "
+                "could not enable ALSA fallback\n",
+                primary_driver, initial_error);
+    return -1;
+  }
+
+  SDL_ClearError();
+  debugPrintf("ASM2_OPENSL SDL audio primary init failed driver=%s: %s; "
+              "retrying driver=alsa\n",
+              primary_driver, initial_error);
   if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
-    debugPrintf("ASM2_OPENSL SDL audio init failed: %s\n", SDL_GetError());
+    char fallback_error[256];
+
+    error = SDL_GetError();
+    if (!error)
+      error = "unknown SDL ALSA initialization error";
+    strncpy(fallback_error, error, sizeof(fallback_error) - 1);
+    fallback_error[sizeof(fallback_error) - 1] = '\0';
+    unsetenv("SDL_AUDIODRIVER");
+    debugPrintf("ASM2_OPENSL audio fallback failed driver=alsa: %s "
+                "(primary driver=%s: %s)\n",
+                fallback_error, primary_driver, initial_error);
+    return -1;
+  }
+
+  debugPrintf("ASM2_OPENSL audio fallback ready driver=%s\n",
+              SDL_GetCurrentAudioDriver() ? SDL_GetCurrentAudioDriver()
+                                          : "alsa");
+  return 0;
+#endif
+}
+
+static uint32_t asm2_sl_open_player(struct asm2_sl_player *player) {
+  if (asm2_sl_initialize_audio_subsystem() != 0) {
     return ASM2_SL_RESULT_RESOURCE_ERROR;
   }
   player->audio_subsystem_acquired = 1;

@@ -2,7 +2,7 @@
 
 **Language / Idioma:** [English](#english) · [Português](#português)
 
-**Package release / Versão do pacote:** 1.1.6
+**Package release / Versão do pacote:** 1.1.7
 
 [Download the latest `asm2.zip`](https://github.com/NextOs-Ports/tasm2-nextos/releases/latest) ·
 [Installation / Instalação](INSTALLATION.md) ·
@@ -43,13 +43,15 @@ The loader preserves the original Android lifecycle on both supported routes:
   process; the native NXExtract UI uses the firmware SDL2/KMSDRM stack.
 
 The launcher negotiates resolution, SDL, GLES, controller data and memory
-settings at runtime. ARMHF systems retain their native backend selection. The
-KMSDRM variables required by the X5M are confined to its exact hardware route;
-no audio backend is forced. Before startup the launcher holds a single-instance
-lock, stops and confirms stale processes, validates the selected ELF,
-interpreter, dependencies and packaged hashes, then runs the game in the
-foreground. The original `RestartGame()` contract permits one controlled
-relaunch.
+settings at runtime. ARMHF systems retain their native backend selection. On
+the external low-glibc ARMHF route only, a failed automatic or inherited
+PulseAudio initialization gets one scoped ALSA retry; arbitrary explicit
+diagnostic drivers remain untouched. The KMSDRM variables required by the X5M
+are confined to its exact hardware route. Before startup the launcher holds a
+single-instance lock, stops and confirms stale processes, validates the
+selected ELF, interpreter, dependencies and packaged hashes, then runs the
+game in the foreground. The original `RestartGame()` contract permits one
+controlled relaunch.
 
 ### Compatibility
 
@@ -61,6 +63,10 @@ Physically validated:
   32-bit ALSA, PipeWire and SPA modules. Gameplay, clear audio and clean
   shutdown passed with zero reported audio underruns, missing bytes or
   failures;
+- ROCKNIX on RG-DS with Panfrost, Wayland and Mesa 26.1.2. When the inherited
+  PulseAudio service was unavailable to the ARMHF process, the scoped ALSA
+  retry opened the RK817 output; gameplay, clear audio and clean shutdown
+  passed;
 - NextOS on AArch64 X5M / Mali-G310 completed 11,034 gameplay frames and a
   6,213-frame reopen, both RC0, with save create/update/reload, physical
   controls and audio passing. This route requires the scoped Box64 profile
@@ -99,6 +105,11 @@ only with its exact validated size and SHA-256.
    - optionally,
      `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb`
 4. Launch **The Amazing Spider-Man 2**.
+
+On ROCKNIX/Wayland, the first greater-than-1-GiB preparation can remain black
+instead of displaying the NXExtract progress screen. Extraction is still
+active: do not power off the device; wait for the game to start. Detailed
+progress remains in `ports/asm2_127/debug.log`.
 
 The self-contained installer needs no separate OBB or cache ZIP, but it does
 not contain the x86 game library required by the X5M/Box32 route. On that
@@ -158,23 +169,27 @@ O loader preserva o ciclo de vida Android original nas duas rotas suportadas:
   do jogo; a interface nativa do NXExtract usa a SDL2/KMSDRM do firmware.
 
 O launcher negocia resolução, SDL, GLES, controles e memória durante a
-execução. Sistemas ARMHF mantêm a seleção nativa de backend. As variáveis
-KMSDRM exigidas pelo X5M ficam restritas à identificação exata desse aparelho;
-nenhum backend de áudio é forçado. Antes de iniciar, o launcher trava uma única
-instância, encerra e confirma processos residuais, valida ELF, interpretador,
-dependências e hashes, e executa o jogo em primeiro plano.
+execução. Sistemas ARMHF mantêm a seleção nativa de backend. Somente na rota
+ARMHF externa de glibc baixa, uma falha na inicialização automática ou no
+PulseAudio herdado recebe uma tentativa restrita via ALSA; escolhas explícitas
+de diagnóstico continuam intactas. As variáveis KMSDRM exigidas pelo X5M ficam
+restritas à identificação exata desse aparelho. Antes de iniciar, o launcher
+trava uma única instância, encerra e confirma processos residuais, valida ELF,
+interpretador, dependências e hashes, e executa o jogo em primeiro plano.
 
 ### Compatibilidade
 
 Validação física concluída no NextOS R2 com Mali-450, no ArkOS/R36S com
-Mali-G31 e no muOS/RG 40XX-H com o loader ARMHF de glibc baixa. No muOS, o
-launcher usou os módulos ALSA, PipeWire e SPA de 32 bits do firmware; gameplay,
-áudio claro e encerramento limpo passaram sem underruns, bytes ausentes ou
-falhas de áudio registradas. No NextOS/X5M com Mali-G310, a rota final completou
-11.034 frames de gameplay e 6.213 frames após reabrir, ambos RC0, com
-criação/atualização/carga de save, áudio e controle físico aprovados. Ela exige
-o perfil Box64 restrito `DYNAREC=1`, `BIGBLOCK=0`, `SAFEFLAGS=2`; o modo eager
-experimental não é usado.
+Mali-G31, no muOS/RG 40XX-H e no ROCKNIX/RG-DS com Panfrost, Wayland e Mesa
+26.1.2. No muOS, o launcher usou os módulos ALSA, PipeWire e SPA de 32 bits do
+firmware; gameplay, áudio claro e encerramento limpo passaram sem underruns,
+bytes ausentes ou falhas de áudio registradas. No ROCKNIX, o PulseAudio herdado
+não abriu no processo ARMHF; a tentativa restrita via ALSA abriu a saída RK817,
+com gameplay, áudio claro e encerramento limpo aprovados. No NextOS/X5M com
+Mali-G310, a rota final completou 11.034 frames de gameplay e 6.213 frames após
+reabrir, ambos RC0, com criação/atualização/carga de save, áudio e controle
+físico aprovados. Ela exige o perfil Box64 restrito `DYNAREC=1`, `BIGBLOCK=0`,
+`SAFEFLAGS=2`; o modo eager experimental não é usado.
 A rota ARMHF também foi estruturada para outros firmwares da classe PortMaster
 que forneçam runtime ARM hard-float, SDL2 e GLES2/GLES3; esses outros alvos são
 compatíveis, mas não são anunciados como testes físicos. A rota X5M é recusada
@@ -205,6 +220,11 @@ aceito somente com tamanho e SHA-256 exatos.
    - opcionalmente,
      `patch.12438.com.gameloft.android.ANMP.GloftASHM.obb`
 4. Abra **The Amazing Spider-Man 2**.
+
+No ROCKNIX/Wayland, a primeira preparação de mais de 1 GiB pode permanecer com
+a tela preta em vez de mostrar o progresso do NXExtract. A extração continua
+ativa: não desligue o aparelho; aguarde o jogo iniciar. O progresso detalhado
+permanece em `ports/asm2_127/debug.log`.
 
 O instalador autocontido dispensa OBB ou cache ZIP separado, mas não contém a
 biblioteca x86 exigida pela rota X5M/Box32. Nesse aparelho, use um dos perfis de
