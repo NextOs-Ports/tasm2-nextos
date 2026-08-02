@@ -26,6 +26,9 @@ asm2_127/runtime/x5m/BOX32-PROVENANCE.md
 asm2_127/runtime/x5m/box64
 asm2_127/runtime/x5m/native/libSDL2-2.0.so.0
 asm2_127/screenshot.png
+asm2_127/seed/first-accept/README.md
+asm2_127/seed/first-accept/ud_Control.sav
+asm2_127/seed/first-accept/ud_OObjects.sav
 asm2_127/tools/extract_apk.py
 asm2_127/tools/extract_shop_assets.py
 asm2_127/tools/prepare_asm2_data.py

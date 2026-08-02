@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.1.9
+
+- Ships a first-accept seed (`seed/first-accept/`): the two settings records
+  the game itself writes after the first-run sequence, generated once on
+  project-owned hardware. `run.sh` now plants them into the owner data
+  directory when they are missing, so fresh and previously stuck installs
+  skip the touch-only legal notice, update log and cloud notice entirely.
+  Existing owner data is never overwritten, and the loader touch recovery
+  remains as a fallback. This replaces per-panel screen-coordinate guessing,
+  which failed on the 720×720 R36 Ultra even after 1.1.8's photographed
+  position, because the game lays its dialogs out per panel aspect instead of
+  scaling one canvas.
+- Physical validation on NextOS Mali-450 at 1280×720: a clean install with
+  only the seed planted boots with no first-run modals, reaches the title
+  screen and starts the campaign from the beginning; a second boot recognizes
+  the profile and leaves input untouched.
+- Root-cause notes from the same session: the acceptance flag lives in
+  `ud_OObjects.sav` (planting `ud_Control.sav` alone does not suppress the
+  legal notice), and the post-acceptance cloud notice is confirmed to respond
+  to the controller's logical A action.
+- No loader changes: every bundled ELF is byte-identical to release 1.1.8.
+
 ## 1.1.8
 
 - Fixes the first-run legal screen on near-square drawables such as 720×720 by

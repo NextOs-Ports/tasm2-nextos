@@ -135,6 +135,9 @@ for relative in \
   port.json \
   runtime/x5m/BOX32-PROVENANCE.md \
   screenshot.png \
+  seed/first-accept/README.md \
+  seed/first-accept/ud_Control.sav \
+  seed/first-accept/ud_OObjects.sav \
   version.txt; do
   put 0644 "$SOURCE_DIR/$relative" "asm2_127/$relative"
 done
@@ -504,7 +507,7 @@ if game.findtext("image") != "./asm2_127/screenshot.png":
 
 with open(sys.argv[3], encoding="utf-8") as stream:
     provenance = json.load(stream)
-if provenance.get("package_version") != "1.1.8":
+if provenance.get("package_version") != "1.1.9":
     raise SystemExit("build provenance package version is invalid")
 with open(sys.argv[4], encoding="utf-8") as stream:
     package_version = stream.read().strip()

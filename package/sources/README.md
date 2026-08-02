@@ -2,7 +2,7 @@
 
 **Language / Idioma:** [English](#english) · [Português](#português)
 
-**Package release / Versão do pacote:** 1.1.8
+**Package release / Versão do pacote:** 1.1.9
 
 This is an independent clean-room compatibility loader. It does not distribute
 the APK, either native game library, OBB files, audio or other executable game

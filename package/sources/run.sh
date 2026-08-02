@@ -750,6 +750,32 @@ prepare_owner_data() {
   fi
 }
 
+plant_first_accept_seed() {
+  # The first-run modals are touch-driven and their layout varies per panel
+  # aspect, so handhelds without a touchscreen can get stuck on the legal
+  # notice. Planting the game's own post-acceptance records makes the game
+  # skip that flow deterministically; the loader touch recovery remains as a
+  # fallback. Existing owner data is never overwritten.
+  local seed_dir="$GAMEDIR/seed/first-accept"
+  local data_dir
+  local seed_file target planted=0
+  data_dir="$GAMEDIR/gamefiles/Android/data"
+  data_dir="$data_dir/com.gameloft.android.ANMP.GloftASHM/files"
+
+  [ -d "$seed_dir" ] || return 0
+  mkdir -p -- "$data_dir" 2>/dev/null || return 0
+  for seed_file in "$seed_dir"/ud_Control.sav "$seed_dir"/ud_OObjects.sav; do
+    [ -f "$seed_file" ] && [ ! -L "$seed_file" ] || continue
+    target="$data_dir/$(basename -- "$seed_file")"
+    [ ! -e "$target" ] || continue
+    cp -- "$seed_file" "$target" 2>/dev/null || continue
+    planted=$((planted + 1))
+  done
+  [ "$planted" -eq 0 ] ||
+    printf '[launcher] first-accept seed planted (%d file(s))\n' "$planted"
+  return 0
+}
+
 validate_x5m_owner_data() {
   local owner_apk_hash
 
@@ -809,7 +835,7 @@ asm2_launcher_main() {
   acquire_launch_lock
   : > "$GAMEDIR/debug.log"
   exec > "$GAMEDIR/debug.log" 2>&1
-  printf '=== The Amazing Spider-Man 2 1.2.7d/1.2.8d | port 1.1.8 | %s ===\n' \
+  printf '=== The Amazing Spider-Man 2 1.2.7d/1.2.8d | port 1.1.9 | %s ===\n' \
     "$(date -Is 2>/dev/null || date)"
 
   for required_tool in od dd tr wc grep awk readlink; do
@@ -835,6 +861,7 @@ asm2_launcher_main() {
   # Extraction deliberately precedes validation or execution of the owner
   # i386 library.  A public clean package never contains libtasm2-x86.so.
   prepare_owner_data || return $?
+  plant_first_accept_seed
   if [ "$PLATFORM_KIND" = x5m-box32 ]; then
     validate_x5m_owner_data
   fi
