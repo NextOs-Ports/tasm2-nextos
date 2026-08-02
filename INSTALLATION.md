@@ -5,7 +5,7 @@
 ### Supported owner inputs
 
 NXExtract identifies files by their contents, not by their external names.
-Release 1.1.7 accepts these exact Android containers:
+Release 1.1.8 accepts these exact Android containers:
 
 | Android input | SHA-256 | Runtime scope |
 |---|---|---|
@@ -70,7 +70,9 @@ self-contained installer, place that one file in `gamedata`.
    NXExtract progress UI. The process is still active: do not power off; wait
    for the game to start. Progress remains available in
    `ports/asm2_127/debug.log`.
-5. If the original legal screen appears, press one face/action button once.
+5. On a clean profile, wait for each prompt and press one face/action button
+   once on the legal screen, update log and cloud notice. The port applies the
+   required touch/HID action for each screen and then restores normal input.
 
 NXExtract validates content rather than trusting external names. A renamed
 supported input can still be recognized. Wrong, incomplete, truncated or
@@ -84,7 +86,7 @@ preferences and cache.
 ### Dados do usuário suportados
 
 O NXExtract identifica os arquivos pelo conteúdo, não pelo nome externo. A
-release 1.1.7 aceita estes contêineres Android exatos:
+release 1.1.8 aceita estes contêineres Android exatos:
 
 | Insumo Android | SHA-256 | Escopo de runtime |
 |---|---|---|
@@ -148,8 +150,10 @@ autocontido ARM32-only, coloque somente esse arquivo em `gamedata`.
    interface de progresso do NXExtract. O processo continua ativo: não
    desligue; aguarde o jogo iniciar. O progresso permanece em
    `ports/asm2_127/debug.log`.
-5. Se a tela legal original aparecer, pressione uma vez um botão frontal/de
-   ação.
+5. Em um perfil novo, aguarde cada aviso e pressione uma vez um botão
+   frontal/de ação nos termos, no log de atualização e no aviso de nuvem. O
+   port aplica o toque/HID exigido em cada tela e depois restaura o controle
+   normal.
 
 O NXExtract valida o conteúdo em vez de confiar no nome externo. Um insumo
 suportado renomeado ainda pode ser reconhecido. Dados errados, incompletos,

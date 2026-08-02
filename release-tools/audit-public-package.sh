@@ -51,8 +51,11 @@ import hashlib
 import json
 from pathlib import Path, PurePosixPath
 import re
+import shutil
 import struct
+import subprocess
 import sys
+import tempfile
 import xml.etree.ElementTree as ET
 import zipfile
 
@@ -61,6 +64,7 @@ zip_path = Path(sys.argv[2]).resolve()
 report_path = Path(sys.argv[3]).resolve()
 blockers: list[str] = []
 notes: list[str] = []
+elf_abi_rows: list[tuple[str, str]] = []
 
 EXPECTED_SCREENSHOT_DIMENSIONS = (640, 480)
 EXPECTED_SCREENSHOT_SHA256 = (
@@ -85,6 +89,38 @@ PROHIBITED_SUFFIXES = {
 
 def digest(payload: bytes) -> str:
     return hashlib.sha256(payload).hexdigest()
+
+
+def version_key(value: str) -> tuple[int, ...]:
+    return tuple(int(part) for part in value.split("."))
+
+
+def audit_elf_abi(name: str, payload: bytes) -> None:
+    if not payload.startswith(b"\x7fELF"):
+        return
+    if shutil.which("readelf") is None:
+        blockers.append("readelf is unavailable for the global ELF ABI audit")
+        return
+    with tempfile.NamedTemporaryFile() as stream:
+        stream.write(payload)
+        stream.flush()
+        result = subprocess.run(
+            ["readelf", "--version-info", stream.name],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            check=False,
+            text=True,
+        )
+    versions = sorted(
+        set(re.findall(r"GLIBC_([0-9]+(?:[.][0-9]+)*)", result.stdout)),
+        key=version_key,
+    )
+    newest = versions[-1] if versions else "none"
+    elf_abi_rows.append((name, newest))
+    if versions and version_key(newest) > version_key("2.30"):
+        blockers.append(
+            f"bundled ELF exceeds GLIBC_2.30: {name} requires GLIBC_{newest}"
+        )
 
 
 def png_dimensions(payload: bytes) -> tuple[int, int]:
@@ -346,6 +382,8 @@ with zipfile.ZipFile(zip_path, "r") as archive:
         if name.endswith("/"):
             continue
         regular_names.append(name)
+        payload = archive.read(name)
+        audit_elf_abi(name, payload)
         basename = member.name
         if (
             basename in PROHIBITED_NAMES
@@ -355,7 +393,6 @@ with zipfile.ZipFile(zip_path, "r") as archive:
         if "__pycache__" in member.parts or basename in {"debug.log", "nxextract.log"}:
             blockers.append(f"cache/log member entered ZIP: {name}")
         if member.suffix.lower() in text_suffixes:
-            payload = archive.read(name)
             for marker in private_markers(payload):
                 blockers.append(f"private marker in ZIP {name}: {marker}")
             for marker in release_placeholders(payload):
@@ -474,6 +511,19 @@ lines = [
 ]
 for name, dimensions, sha, state in art_rows:
     lines.append(f"| `{name}` | {dimensions} | `{sha}` | {state} |")
+
+lines.extend(
+    [
+        "",
+        "## Bundled ELF ABI",
+        "",
+        "| File | Newest GLIBC |",
+        "| --- | ---: |",
+    ]
+)
+for name, newest in elf_abi_rows:
+    rendered = f"GLIBC_{newest}" if newest != "none" else "none/static"
+    lines.append(f"| `{name}` | {rendered} |")
 
 lines.extend(["", "## Manifest and privacy", ""])
 for note in notes:

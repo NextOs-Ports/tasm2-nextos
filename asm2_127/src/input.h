@@ -59,14 +59,16 @@ struct asm2_input {
   SDL_GameController *controller;
   SDL_JoystickID instance_id;
   struct asm2_input_callbacks callbacks;
-  const char *first_accept_marker;
+  const char *first_run_touch_state_path;
   double hid_values[ASM2_HID_RIGHT_STICK + 1];
   unsigned int hid_sent;
   int drawable_width;
   int drawable_height;
-  int first_accept_armed;
-  int first_accept_touch_active;
-  int first_accept_button;
+  int first_run_touch_stage;
+  int first_run_touch_active;
+  int first_run_touch_button;
+  int first_run_touch_x;
+  int first_run_touch_y;
   int select_pressed;
   int start_pressed;
   int mouse_pressed;
@@ -79,7 +81,8 @@ struct asm2_input {
 void asm2_input_init(struct asm2_input *input,
                      const struct asm2_input_callbacks *callbacks,
                      int drawable_width, int drawable_height,
-                     const char *first_accept_marker);
+                     const char *first_run_touch_state_path,
+                     int first_run_touch_stage);
 
 /* Returns one while the game should continue, zero on quit/Select+Start. */
 int asm2_input_pump(struct asm2_input *input);

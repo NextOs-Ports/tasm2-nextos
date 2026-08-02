@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "package_version": "1.1.7",
+  "package_version": "1.1.8",
   "target_game": {
     "android_version_names": [
       "1.2.7d",
@@ -34,23 +34,27 @@
   "loaders": {
     "bin/asm2-nextos-armhf": {
       "abi": "ELF32 ARM EABI5 hard-float",
-      "build_profile": "current NextOS Amlogic-old ARMHF sysroot",
-      "maximum_glibc": "2.43",
-      "sha256": "3c43323ff73ad6a1772ff678f86add21095b09dbed4ca110ffddf397af44730d"
+      "build_profile": "deterministic Debian Buster public ARMHF build with failure-triggered ALSA retry, SOURCE_DATE_EPOCH=1785628800 and strip --strip-unneeded",
+      "maximum_glibc": "2.27",
+      "size": 122704,
+      "build_id": "3496aaa7ac7d52b0e773639b9d203e1556f540a5",
+      "sha256": "c81c8ab0c1a0b403ef82e9166997b204cdc81514199fdbb37c4c7885bd1bbfcc"
     },
     "bin/asm2-portmaster-armhf": {
       "abi": "ELF32 ARM EABI5 hard-float",
-      "build_profile": "Debian Buster ARMHF compatibility build with failure-triggered ALSA retry, strip --strip-unneeded",
+      "build_profile": "deterministic Debian Buster public ARMHF build with failure-triggered ALSA retry, SOURCE_DATE_EPOCH=1785628800 and strip --strip-unneeded",
       "maximum_glibc": "2.27",
-      "sha256": "939c2d985581d31a02c4cfc83c3121999fb2588ea936cc2731be4ecf8427cf9d"
+      "size": 122704,
+      "build_id": "3496aaa7ac7d52b0e773639b9d203e1556f540a5",
+      "sha256": "c81c8ab0c1a0b403ef82e9166997b204cdc81514199fdbb37c4c7885bd1bbfcc"
     },
     "asm2_127_x86_box32": {
       "abi": "ELF32 i386 System V executable for Box32",
-      "build_profile": "GCC -m32 release with static libgcc, corrected lazy-resolver ABI alignment and strip --strip-unneeded",
-      "maximum_glibc": "2.38",
-      "size": 208856,
-      "build_id": "23c6519da8299329f06d22935a791422e22835ec",
-      "sha256": "4c5b49ca7639ca7bbea4433793fb8defecd63c1ec304feb9703002a9000fc86d",
+      "build_profile": "deterministic Debian Buster GCC -m32 release with static libgcc, corrected lazy-resolver ABI alignment, SOURCE_DATE_EPOCH=1785628800 and strip --strip-unneeded",
+      "maximum_glibc": "2.17",
+      "size": 196508,
+      "build_id": "a0bc1845f7ec16ac9c914bdd68c5be35df384044",
+      "sha256": "201c2ef029451a005f047090db05f8f0d9f61b43eccf5309b936ba4306a7b110",
       "license": "GPL-3.0-only",
       "release_status": "validated"
     },
@@ -95,10 +99,11 @@
       "upstream_commit": "3ec5de03c786333ed8d5a51c5b35a8bd6e22b229",
       "downstream_patch_sha256": "4d1042b5fadd1a5ad16b47882c62d79aae12f10c450ede84b81bf079f3ef6ad7",
       "abi": "ELF64 AArch64",
-      "maximum_glibc": "2.43",
-      "size": 25720640,
-      "build_id": "993190f7bb2c8c6326d5e9d9ad893a941084551b",
-      "sha256": "48571604ccfb9399c6abba06349887d724dd23b5e8d80d4ac129c3acc39e405e",
+      "build_profile": "deterministic Debian Buster AArch64 cross-build, SOURCE_DATE_EPOCH=1785628800 and strip --strip-unneeded",
+      "maximum_glibc": "2.28",
+      "size": 25622728,
+      "build_id": "c9fea4a9332e0a08fb67d049be1909a740fc9037",
+      "sha256": "d73aa019eefd4e553acda8ef7a126f88101cd1cdf46502e4060c192412c3f4dc",
       "license": "MIT",
       "release_status": "validated"
     },
@@ -107,13 +112,14 @@
       "upstream": "https://github.com/libsdl-org/sdl2-compat",
       "upstream_commit": "3e1fa90d301428ace65d5c8b371e93d2c59c3d65",
       "version": "2.32.71",
-      "embedded_version_string": "SDL-2.32.71-gacc2cc1",
-      "embedded_version_note": "acc2cc1 is the surrounding parent-tree revision observed by CMake, not an upstream sdl2-compat commit",
+      "embedded_version_string": "SDL-2.32.71-no-vcs",
+      "embedded_version_note": "the hermetic Debian Buster build intentionally omits surrounding parent-tree Git metadata",
       "abi": "ELF64 AArch64 shared object",
-      "maximum_glibc": "2.34",
-      "size": 467752,
-      "build_id": "0dfade075d971c3e24a50fbb4545c37eb0794fed",
-      "sha256": "eae4f55286eb9f888302878fa18d6a9d21f61bee9e1678d0991fa25f6ac207d5",
+      "build_profile": "deterministic Debian Buster AArch64 cross-build, X11 disabled, SOURCE_DATE_EPOCH=1785628800 and strip --strip-unneeded",
+      "maximum_glibc": "2.17",
+      "size": 451256,
+      "build_id": "b67b112cd90b561ddb7059789417d588c2b29c45",
+      "sha256": "798051928c553ee27fde9e2d555be4a9fe4ddcefbbb72f59252e427cbcb0d452",
       "license": "Zlib"
     },
     "validation": {
@@ -131,6 +137,34 @@
       "mali450_owner_input_transactional_matrix": "4/4 ARMv7 extractions",
       "mali450_interrupted_extraction_resume": true,
       "armhf_gles_oes_alias_contract": true,
+      "first_run_geometry_and_resume_contract": true,
+      "all_bundled_linux_elf_glibc_at_most_2_30": true,
+      "arkos_rk3326_first_run_physical": {
+        "passed": true,
+        "candidate": "1.1.8",
+        "firmware": "ArkOS 2.0",
+        "hardware": "RK3326 handheld",
+        "drawable": "640x480",
+        "sequence": [
+          "legal-touch",
+          "update-log-hid",
+          "cloud-notice-touch",
+          "controls",
+          "loading"
+        ],
+        "tested_loader_sha256": "c81c8ab0c1a0b403ef82e9166997b204cdc81514199fdbb37c4c7885bd1bbfcc",
+        "nintendo_layout_trigger_normalized_to_logical_a": true,
+        "profile_reopen_without_interception": true,
+        "clean_shutdown": true
+      },
+      "x5m_low_glibc_rebuild": {
+        "box32_host_source_and_runtime_profile_match_physical_baseline": true,
+        "i386_loader_changes_limited_to_shared_first_run_input_path": true,
+        "two_clean_builds_byte_identical": true,
+        "box32_qemu_start": true,
+        "i386_guest_loader_qemu_box32_smoke": true,
+        "exact_rebuilt_bytes_physically_revalidated": false
+      },
       "armhf_muos_lib32_audio_environment_contract": true,
       "muos_rg40xxh_armhf_audio_physical": {
         "passed": true,

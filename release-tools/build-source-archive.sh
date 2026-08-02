@@ -16,8 +16,8 @@ NXEXTRACT_UPSTREAM_PY_SHA256=32cd5ed702ba2a0abfe1b63cb086e442675178d4beffccfdf6d
 NXEXTRACT_DOWNSTREAM_PY_SHA256=fc21745f059a926a67b2d5ee7217dc680118adcc90d015d8d74f3445d81178f4
 GCC_EXCEPTION_SHA256=9d6b43ce4d8de0c878bf16b54d8e7a10d9bd42b75178153e3af6a815bdc90f74
 
-VERSION=1.1.7
-SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH:-1785369600}
+VERSION=1.1.8
+SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH:-1785628800}
 PORT_SOURCE=
 PACKAGE_SOURCE=
 BOX64_REPO=
@@ -54,7 +54,7 @@ Optional:
   --box64-patch-sha256 HASH expected hash (mandatory with --release)
   --i386-loader-sha256 HASH packaged i386 loader hash (mandatory with --release)
   --box32-runtime-sha256 HASH packaged Box32 hash (mandatory with --release)
-  --version VERSION         source package version (default: 1.1.7)
+  --version VERSION         source package version (default: 1.1.8)
   --release                 require an immutable clean 40-hex port revision
   --help
 EOF
@@ -239,8 +239,8 @@ git -C "$NXEXTRACT_REPO" cat-file -e "$NXEXTRACT_COMMIT^{commit}" ||
 
 [ -f "$PORT_SOURCE/src/main.c" ] ||
   fail "port source does not contain src/main.c"
-[ -f "$PORT_SOURCE/build_x86_box32.sh" ] ||
-  fail "port source does not contain the i386 build recipe"
+[ -f "$PORT_SOURCE/build_buster_x86_box32.sh" ] ||
+  fail "port source does not contain the public low-glibc i386 build recipe"
 [ -f "$PACKAGE_SOURCE/build-package.sh" ] &&
   [ -f "$PACKAGE_SOURCE/sources/nxextract.py" ] ||
   fail "package source layout is incomplete"
@@ -369,6 +369,7 @@ copy_port_sources() {
     "The Amazing Spider-Man 2.sh" \
     build.sh \
     build_buster_arkos.sh \
+    build_buster_x86_box32.sh \
     build_x86_box32.sh \
     build_x86_smoke.sh \
     x5m-runtime-env.sh; do

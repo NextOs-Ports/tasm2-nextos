@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 # Rebuild the scoped AArch64 Box32 host from the bundled patched Box64 source.
+# Public release builds must use a sysroot whose GLIBC is at most 2.30.
 set -euo pipefail
+
+export SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH:-1785628800}
 
 SOURCE_DIR=${1:?usage: build-box32-x5m.sh SOURCE_DIR BUILD_DIR}
 BUILD_DIR=${2:?usage: build-box32-x5m.sh SOURCE_DIR BUILD_DIR}
 AARCH64_CC=${AARCH64_CC:-aarch64-linux-gnu-gcc}
-TARGET_SYSROOT=${TARGET_SYSROOT:?set TARGET_SYSROOT to the current target NextOS sysroot}
+TARGET_SYSROOT=${TARGET_SYSROOT:?set TARGET_SYSROOT to a low-glibc AArch64 target sysroot}
 AARCH64_STRIP=${AARCH64_STRIP:-aarch64-linux-gnu-strip}
 AARCH64_READELF=${AARCH64_READELF:-aarch64-linux-gnu-readelf}
 EXPECTED_SHA256=${EXPECTED_SHA256:-}
@@ -56,8 +59,19 @@ machine=$("$AARCH64_READELF" -h "$BUILD_DIR/box64" |
 }
 
 actual_sha256=$(sha256sum "$BUILD_DIR/box64" | awk '{print $1}')
+newest=$(
+  "$AARCH64_READELF" --version-info "$BUILD_DIR/box64" 2>/dev/null |
+    grep -oE 'GLIBC_[0-9]+([.][0-9]+)*' | sed 's/^GLIBC_//' |
+    sort -Vu | tail -1
+)
+maximum=$(printf '%s\n%s\n' 2.30 "$newest" | sort -V | tail -1)
+[ "$maximum" = 2.30 ] || {
+  printf 'Box32 host exceeds public ABI ceiling: GLIBC_%s\n' "$newest" >&2
+  exit 1
+}
 if [ -n "$EXPECTED_SHA256" ] && [ "$actual_sha256" != "$EXPECTED_SHA256" ]; then
   printf 'Box32 host hash mismatch: %s\n' "$actual_sha256" >&2
   exit 1
 fi
+printf 'glibc max = GLIBC_%s\n' "$newest"
 printf '%s  %s\n' "$actual_sha256" "$BUILD_DIR/box64"
