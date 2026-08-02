@@ -21,7 +21,8 @@ gcc -m32 -std=gnu11 -O2 -fno-pie -no-pie -static-libgcc \
   src/bionic_compat.c src/platform_shims.c src/opensl_bridge.c \
   src/pthread_bridge.c src/jni_bridge.c src/android_callbacks.c \
   src/installer_compat.c src/startup_compat.c src/audio_compat.c \
-  src/shop_compat.c src/video.c src/input.c src/x86_runtime_compat.c \
+  src/shop_compat.c src/video.c src/first_accept.c src/input.c \
+  src/x86_runtime_compat.c \
   src/capture_x86.c \
   src/setjmp_bridge_x86.S src/x86_gl_lazy.S \
   -L"$SDL32_DIR" -l:libSDL2-2.0.so.0 -ldl -lm -pthread \

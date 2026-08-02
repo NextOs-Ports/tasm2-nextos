@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.1.8
+
+- Fixes the first-run legal screen on near-square drawables such as 720×720 by
+  targeting the photographed ACCEPT row instead of reusing the 4:3 vertical
+  coordinate.
+- Replaces the one-shot acceptance marker with a three-stage recovery state:
+  legal touch, native-HID update-log confirmation and centered cloud-notice
+  touch. Older markers migrate by drawable class, and incomplete attempts are
+  retried until the game creates its own controls profile.
+- Normalizes the update-log confirmation to the guest's logical A action, so
+  Nintendo-style controller labels cannot turn the recovery press into B.
+- Passed the complete clean-profile sequence on physical ArkOS at 640×480:
+  legal, update log, cloud notice, controls and loading. A subsequent launch
+  recognized the game-owned profile, left input unmodified and shut down
+  cleanly.
+- Rebuilds every bundled Linux ELF with a public ABI ceiling of GLIBC 2.30:
+  ARMHF and Box32 require at most 2.28; the i386 loader, `sdl2-compat` and
+  NXExtract UI require at most 2.17.
+
 ## 1.1.7
 
 - Keeps SDL's inherited audio selection as the first choice on the external

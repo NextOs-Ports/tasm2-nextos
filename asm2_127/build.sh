@@ -24,7 +24,7 @@ cd "$PORT_DIR"
   src/pthread_bridge.c src/jni_bridge.c src/android_callbacks.c \
   src/installer_compat.c src/startup_compat.c src/audio_compat.c \
   src/shop_compat.c \
-  src/video.c src/input.c \
+  src/video.c src/first_accept.c src/input.c \
   src/setjmp_bridge.S \
   -lSDL2 -lEGL -lGLESv2 -ldl -lm -lpthread
 

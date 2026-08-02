@@ -3,10 +3,11 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <math.h>
-#include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
+#include "first_accept.h"
 #include "util.h"
 
 enum {
@@ -31,7 +32,7 @@ enum {
   ANDROID_KEY_BUTTON_MODE = 110,
 };
 
-static void finish_first_accept_touch(struct asm2_input *input);
+static void finish_first_run_touch(struct asm2_input *input);
 
 static void send_hid(struct asm2_input *input, int event_id, double value) {
   if (!input || event_id < ASM2_HID_LEFT_TRIGGER ||
@@ -52,7 +53,7 @@ static void send_hid(struct asm2_input *input, int event_id, double value) {
 static void release_controller_state(struct asm2_input *input) {
   if (!input)
     return;
-  finish_first_accept_touch(input);
+  finish_first_run_touch(input);
   for (int event_id = ASM2_HID_LEFT_TRIGGER;
        event_id <= ASM2_HID_RIGHT_STICK; ++event_id) {
     unsigned int bit = 1u << event_id;
@@ -279,81 +280,101 @@ static void send_touch_end_sentinel(struct asm2_input *input) {
                            input->callbacks.userdata);
 }
 
-static int is_first_accept_button(SDL_GameControllerButton button) {
+static int is_first_run_touch_button(SDL_GameControllerButton button) {
   return button == SDL_CONTROLLER_BUTTON_A ||
          button == SDL_CONTROLLER_BUTTON_B ||
          button == SDL_CONTROLLER_BUTTON_X ||
          button == SDL_CONTROLLER_BUTTON_Y;
 }
 
-static int first_accept_x(const struct asm2_input *input) {
-  return input->drawable_width / 2;
-}
-
-static int first_accept_y(const struct asm2_input *input) {
-  /*
-   * The 2014 Gameloft UI reflows this dialog by aspect ratio.  Its ACCEPT
-   * center is at 79% height on the R36S 640x480 layout and at 88.3% on the
-   * widescreen 1280x720 layout.  Handheld 4:3/square modes use the compact
-   * placement; 3:2 and wider modes use the widescreen placement.
-   */
-  const int compact =
-      (int64_t)input->drawable_width * 2 <=
-      (int64_t)input->drawable_height * 3;
-  return (input->drawable_height * (compact ? 790 : 883)) / 1000;
-}
-
-static void persist_first_accept_marker(struct asm2_input *input) {
-  if (!input || !input->first_accept_marker ||
-      !input->first_accept_marker[0])
+static void persist_first_run_touch_state(struct asm2_input *input) {
+  if (!input || !input->first_run_touch_state_path ||
+      !input->first_run_touch_state_path[0])
     return;
 
-  int descriptor =
-      open(input->first_accept_marker,
-           O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0644);
+  char temporary_path[4096];
+  int path_length = snprintf(temporary_path, sizeof(temporary_path), "%s.tmp",
+                             input->first_run_touch_state_path);
+  if (path_length < 0 || (size_t)path_length >= sizeof(temporary_path)) {
+    debugPrintf("ASM2_INPUT first-run state path too long\n");
+    return;
+  }
+
+  int descriptor = open(temporary_path,
+                        O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0644);
   if (descriptor < 0) {
-    if (errno != EEXIST)
-      debugPrintf("ASM2_INPUT first-accept marker failed path=%s errno=%d\n",
-                  input->first_accept_marker, errno);
+    debugPrintf("ASM2_INPUT first-run state failed path=%s errno=%d\n",
+                input->first_run_touch_state_path, errno);
     return;
   }
 
-  static const char value[] = "accepted-v1\n";
-  ssize_t written = write(descriptor, value, sizeof(value) - 1u);
-  int saved_errno = errno;
-  if (written == (ssize_t)(sizeof(value) - 1u))
-    fsync(descriptor);
-  close(descriptor);
-  if (written != (ssize_t)(sizeof(value) - 1u)) {
-    unlink(input->first_accept_marker);
-    debugPrintf("ASM2_INPUT first-accept marker failed path=%s errno=%d\n",
-                input->first_accept_marker, saved_errno);
+  char value[32];
+  int value_length = snprintf(value, sizeof(value), "next=%d\n",
+                              input->first_run_touch_stage);
+  ssize_t written = write(descriptor, value, (size_t)value_length);
+  int saved_errno = 0;
+  if (written != value_length)
+    saved_errno = written < 0 ? errno : EIO;
+  if (saved_errno == 0 && fsync(descriptor) != 0)
+    saved_errno = errno;
+  if (close(descriptor) != 0 && saved_errno == 0)
+    saved_errno = errno;
+  if (saved_errno == 0 &&
+      rename(temporary_path, input->first_run_touch_state_path) != 0)
+    saved_errno = errno;
+  if (saved_errno != 0) {
+    unlink(temporary_path);
+    debugPrintf("ASM2_INPUT first-run state failed path=%s errno=%d\n",
+                input->first_run_touch_state_path, saved_errno);
     return;
   }
-  debugPrintf("ASM2_INPUT first-accept marker saved\n");
+  debugPrintf("ASM2_INPUT first-run state saved next=%d\n",
+              input->first_run_touch_stage);
 }
 
-static void begin_first_accept_touch(struct asm2_input *input,
-                                     SDL_GameControllerButton button) {
-  input->first_accept_touch_active = 1;
-  input->first_accept_button = (int)button;
-  debugPrintf("ASM2_INPUT first-accept touch down button=%d x=%d y=%d\n",
-              (int)button, first_accept_x(input), first_accept_y(input));
-  send_touch_pixels(input, ASM2_TOUCH_DOWN, first_accept_x(input),
-                    first_accept_y(input), 0);
-}
-
-static void finish_first_accept_touch(struct asm2_input *input) {
-  if (!input || !input->first_accept_touch_active)
+static void begin_first_run_touch(struct asm2_input *input,
+                                  SDL_GameControllerButton button) {
+  input->first_run_touch_active = 1;
+  input->first_run_touch_button = (int)button;
+  if (input->first_run_touch_stage == ASM2_FIRST_RUN_TOUCH_UPDATE_LOG) {
+    /* The plastic face-button labels and SDL's logical A/B mapping differ on
+     * Nintendo-style handhelds. This modal expects Android's logical A, so
+     * keep accepting any face button as the recovery trigger but emit the
+     * same deterministic confirmation action on every controller layout. */
+    debugPrintf(
+        "ASM2_INPUT first-run hid down stage=%d button=%d logical=%d\n",
+        input->first_run_touch_stage, (int)button, ASM2_HID_A);
+    send_hid(input, ASM2_HID_A, 1.0);
     return;
-  send_touch_pixels(input, ASM2_TOUCH_UP, first_accept_x(input),
-                    first_accept_y(input), 0);
-  send_touch_end_sentinel(input);
-  input->first_accept_touch_active = 0;
-  input->first_accept_armed = 0;
-  input->first_accept_button = SDL_CONTROLLER_BUTTON_INVALID;
-  persist_first_accept_marker(input);
-  debugPrintf("ASM2_INPUT first-accept touch up\n");
+  }
+  asm2_first_run_touch_position(
+      input->first_run_touch_stage, input->drawable_width,
+      input->drawable_height, &input->first_run_touch_x,
+      &input->first_run_touch_y);
+  debugPrintf("ASM2_INPUT first-run touch down stage=%d button=%d x=%d y=%d\n",
+              input->first_run_touch_stage, (int)button,
+              input->first_run_touch_x, input->first_run_touch_y);
+  send_touch_pixels(input, ASM2_TOUCH_DOWN, input->first_run_touch_x,
+                    input->first_run_touch_y, 0);
+}
+
+static void finish_first_run_touch(struct asm2_input *input) {
+  if (!input || !input->first_run_touch_active)
+    return;
+  if (input->first_run_touch_stage == ASM2_FIRST_RUN_TOUCH_UPDATE_LOG) {
+    send_hid(input, ASM2_HID_A, 0.0);
+  } else {
+    send_touch_pixels(input, ASM2_TOUCH_UP, input->first_run_touch_x,
+                      input->first_run_touch_y, 0);
+    send_touch_end_sentinel(input);
+  }
+  input->first_run_touch_active = 0;
+  if (input->first_run_touch_stage < ASM2_FIRST_RUN_TOUCH_COMPLETE)
+    ++input->first_run_touch_stage;
+  input->first_run_touch_button = SDL_CONTROLLER_BUTTON_INVALID;
+  persist_first_run_touch_state(input);
+  debugPrintf("ASM2_INPUT first-run touch up next=%d\n",
+              input->first_run_touch_stage);
 }
 
 static int mouse_drawable_coordinate(struct asm2_input *input,
@@ -460,21 +481,26 @@ static void handle_finger_event(struct asm2_input *input,
 void asm2_input_init(struct asm2_input *input,
                      const struct asm2_input_callbacks *callbacks,
                      int drawable_width, int drawable_height,
-                     const char *first_accept_marker) {
+                     const char *first_run_touch_state_path,
+                     int first_run_touch_stage) {
   if (!input)
     return;
   memset(input, 0, sizeof(*input));
   input->instance_id = -1;
-  input->first_accept_button = SDL_CONTROLLER_BUTTON_INVALID;
-  input->first_accept_marker = first_accept_marker;
-  input->first_accept_armed =
-      first_accept_marker && first_accept_marker[0];
+  input->first_run_touch_button = SDL_CONTROLLER_BUTTON_INVALID;
+  input->first_run_touch_state_path = first_run_touch_state_path;
+  input->first_run_touch_stage = first_run_touch_stage;
+  if (!first_run_touch_state_path || !first_run_touch_state_path[0] ||
+      first_run_touch_stage < ASM2_FIRST_RUN_TOUCH_LEGAL ||
+      first_run_touch_stage > ASM2_FIRST_RUN_TOUCH_COMPLETE)
+    input->first_run_touch_stage = ASM2_FIRST_RUN_TOUCH_COMPLETE;
   input->drawable_width = drawable_width > 0 ? drawable_width : 1;
   input->drawable_height = drawable_height > 0 ? drawable_height : 1;
   if (callbacks)
     input->callbacks = *callbacks;
-  if (input->first_accept_armed)
-    debugPrintf("ASM2_INPUT first-accept armed\n");
+  if (input->first_run_touch_stage < ASM2_FIRST_RUN_TOUCH_COMPLETE)
+    debugPrintf("ASM2_INPUT first-run touch armed next=%d\n",
+                input->first_run_touch_stage);
 
   SDL_GameControllerEventState(SDL_ENABLE);
   SDL_JoystickEventState(SDL_ENABLE);
@@ -511,15 +537,16 @@ int asm2_input_pump(struct asm2_input *input) {
       int pressed = event.type == SDL_CONTROLLERBUTTONDOWN;
       SDL_GameControllerButton button = event.cbutton.button;
       int event_id = hid_button(button);
-      if (input->first_accept_touch_active &&
-          (int)button == input->first_accept_button) {
+      if (input->first_run_touch_active &&
+          (int)button == input->first_run_touch_button) {
         if (!pressed)
-          finish_first_accept_touch(input);
+          finish_first_run_touch(input);
         break;
       }
-      if (pressed && input->first_accept_armed &&
-          is_first_accept_button(button)) {
-        begin_first_accept_touch(input, button);
+      if (pressed &&
+          input->first_run_touch_stage < ASM2_FIRST_RUN_TOUCH_COMPLETE &&
+          is_first_run_touch_button(button)) {
+        begin_first_run_touch(input, button);
         break;
       }
       send_hid(input, event_id, pressed ? 1.0 : 0.0);

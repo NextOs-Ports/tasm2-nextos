@@ -20,11 +20,12 @@ X5_GUEST_LIBRARY="$GAMEDIR/libtasm2-x86.so"
 OWNER_RUNTIME_APK="$GAMEDIR/gamefiles/base.apk"
 X5_ENV_HELPER="${ASM2_X5_ENV_HELPER:-$RUN_SCRIPT_DIR/x5m-runtime-env.sh}"
 
-# Frozen after long gameplay plus save/TERM/reopen RC0 with the scoped profile.
-X5_BOX32_SHA256=48571604ccfb9399c6abba06349887d724dd23b5e8d80d4ac129c3acc39e405e
-X5_SDL2_COMPAT_SHA256=eae4f55286eb9f888302878fa18d6a9d21f61bee9e1678d0991fa25f6ac207d5
-# Aligned i386 loader frozen after the same real X5M validation.
-X5_GUEST_BIN_SHA256=4c5b49ca7639ca7bbea4433793fb8defecd63c1ec304feb9703002a9000fc86d
+# Deterministic low-glibc rebuilds of the scoped source/runtime profile.
+# BUILD-PROVENANCE.json separates the historical physical proof from the
+# exact-byte rebuild and QEMU smoke evidence for this release.
+X5_BOX32_SHA256=d73aa019eefd4e553acda8ef7a126f88101cd1cdf46502e4060c192412c3f4dc
+X5_SDL2_COMPAT_SHA256=798051928c553ee27fde9e2d555be4a9fe4ddcefbbb72f59252e427cbcb0d452
+X5_GUEST_BIN_SHA256=201c2ef029451a005f047090db05f8f0d9f61b43eccf5309b936ba4306a7b110
 X5_GUEST_LIBRARY_SHA256=d146d38574c19a105df8a46e523f626c06004c8f71bbeed5cf77e919dbf81a12
 ARM32_ONLY_RUNTIME_APK_SHA256=95ffd25a6623e731e80156df82066e4a2b1475466adb337389b93aeed0f1ea71
 
@@ -808,7 +809,7 @@ asm2_launcher_main() {
   acquire_launch_lock
   : > "$GAMEDIR/debug.log"
   exec > "$GAMEDIR/debug.log" 2>&1
-  printf '=== The Amazing Spider-Man 2 1.2.7d/1.2.8d | port 1.1.7 | %s ===\n' \
+  printf '=== The Amazing Spider-Man 2 1.2.7d/1.2.8d | port 1.1.8 | %s ===\n' \
     "$(date -Is 2>/dev/null || date)"
 
   for required_tool in od dd tr wc grep awk readlink; do

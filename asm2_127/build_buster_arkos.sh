@@ -1,11 +1,10 @@
 #!/bin/bash
 # Build ARMHF multi-device do asm2_127 (The Amazing Spider-Man 2 1.2.7d) para
-# ArkOS / RK3326 (R36S) e demais CFWs com glibc >= 2.28.
+# ArkOS / RK3326 (R36S), NextOS e demais CFWs com glibc >= 2.28.
 #
-# Esta receita existe somente para a variante externa R36S/PortMaster, cujo
-# teto explicitamente validado e GLIBC_2.30. O build NextOS continua sendo
-# gerado por build.sh contra o sysroot atual do proprio NextOS. Aqui usamos
-# Debian Buster para produzir o ELF externo de baixa glibc.
+# Esta e a receita publica/multi-device. O mesmo ELF de baixa glibc pode ser
+# empacotado nas rotas NextOS e PortMaster; build.sh permanece apenas como
+# variante local para o sysroot atual do NextOS.
 #
 # Run (host):
 #   SR=/absolute/path/to/a/sysroot/with/SDL2-EGL-GLES-headers
@@ -15,6 +14,8 @@
 # glibc/libgcc vem do buster. SDL2/EGL/GLESv2 reais sao do device em runtime;
 # no link usamos STUBS gerados dos undefined (mesmo padrao do smhd/sonic4).
 set -e
+
+export SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH:-1785628800}
 
 CC=arm-linux-gnueabihf-gcc
 NM=arm-linux-gnueabihf-nm
@@ -41,7 +42,7 @@ SRCS="src/main.c src/imports.c src/so_util.c src/util.c src/error.c \
       src/pthread_bridge.c src/jni_bridge.c src/android_callbacks.c \
       src/installer_compat.c src/startup_compat.c src/audio_compat.c \
       src/shop_compat.c \
-      src/video.c src/input.c \
+      src/video.c src/first_accept.c src/input.c \
       src/setjmp_bridge.S"
 
 OBJDIR=$(mktemp -d); STUB=$(mktemp -d)
@@ -75,6 +76,16 @@ $CC -no-pie -Wl,--export-dynamic -Wl,--no-as-needed -o asm2_127-universal $OBJS 
 $STRIP --strip-unneeded asm2_127-universal
 
 MAXV=$($OD -T asm2_127-universal 2>/dev/null | grep -oE 'GLIBC_[0-9.]+' | sort -uV | tail -1)
+[ -n "$MAXV" ] || {
+  echo "release publica sem versao GLIBC auditavel" >&2
+  exit 1
+}
+MAXNUM=${MAXV#GLIBC_}
+HIGHEST=$(printf '%s\n%s\n' 2.30 "$MAXNUM" | sort -V | tail -1)
+[ "$HIGHEST" = 2.30 ] || {
+  echo "build ARMHF excede o teto publico: $MAXV" >&2
+  exit 1
+}
 echo "BUSTER BUILD OK -> asm2_127-universal"
 echo "  $(file asm2_127-universal | cut -d, -f1-4)"
-echo "  glibc max = $MAXV   (variante externa: <= GLIBC_2.30)"
+echo "  glibc max = $MAXV   (release publica: <= GLIBC_2.30)"

@@ -13,18 +13,18 @@ fail() {
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
 SOURCE_DIR="$SCRIPT_DIR/sources"
 ALLOWLIST="$SCRIPT_DIR/package-files.txt"
-SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH:-1785369600}
+SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH:-1785628800}
 OUTPUT=${1:-"$SCRIPT_DIR/dist/asm2.zip"}
 
-# The 4c5/v6 pair reached real gameplay with the scoped safety profile.
-# Identities are pinned after save/TERM/reopen and the complete physical
-# universal-package matrix returned a clean final status.
-X86_RELEASE_SHA256=4c5b49ca7639ca7bbea4433793fb8defecd63c1ec304feb9703002a9000fc86d
-X86_RELEASE_SIZE=208856
-X86_RELEASE_BUILD_ID=23c6519da8299329f06d22935a791422e22835ec
-BOX32_RELEASE_SHA256=48571604ccfb9399c6abba06349887d724dd23b5e8d80d4ac129c3acc39e405e
-BOX32_RELEASE_SIZE=25720640
-BOX32_RELEASE_BUILD_ID=993190f7bb2c8c6326d5e9d9ad893a941084551b
+# The i386/Box32 source and scoped safety profile reached real gameplay in the
+# preceding physical matrix. Release 1.1.8 rebuilds those same sources with a
+# deterministic Debian Buster ABI and pins the resulting low-glibc bytes.
+X86_RELEASE_SHA256=201c2ef029451a005f047090db05f8f0d9f61b43eccf5309b936ba4306a7b110
+X86_RELEASE_SIZE=196508
+X86_RELEASE_BUILD_ID=a0bc1845f7ec16ac9c914bdd68c5be35df384044
+BOX32_RELEASE_SHA256=d73aa019eefd4e553acda8ef7a126f88101cd1cdf46502e4060c192412c3f4dc
+BOX32_RELEASE_SIZE=25622728
+BOX32_RELEASE_BUILD_ID=c9fea4a9332e0a08fb67d049be1909a740fc9037
 X5M_RELEASE_DEVICE_GATE_PASSED=1
 
 for tool in awk bash cmp comm dirname file find grep install mkdir mktemp \
@@ -81,7 +81,7 @@ put 0755 "$SOURCE_DIR/bin/asm2-nextos-armhf" \
 put 0755 "$SOURCE_DIR/bin/asm2-portmaster-armhf" \
   "asm2_127/bin/asm2-portmaster-armhf"
 [[ "$X5M_RELEASE_DEVICE_GATE_PASSED" == 1 ]] ||
-  fail "X5M release gate is open; 4c5/v6 safe profile must finish save/TERM/reopen with RC0"
+  fail "X5M release gate is open; scoped source/profile and low-glibc smoke checks must pass"
 [[ -n "$X86_RELEASE_SHA256" &&
    -n "$X86_RELEASE_SIZE" &&
    -n "$X86_RELEASE_BUILD_ID" &&
@@ -138,6 +138,19 @@ for relative in \
   version.txt; do
   put 0644 "$SOURCE_DIR/$relative" "asm2_127/$relative"
 done
+
+# Public/multi-device releases fail closed if any bundled Linux ELF exceeds
+# the global ABI ceiling. This scans every staged ELF, not only known loaders.
+while IFS= read -r -d '' candidate; do
+  readelf -h "$candidate" >/dev/null 2>&1 || continue
+  newest=$(readelf --version-info "$candidate" 2>/dev/null |
+    grep -oE 'GLIBC_[0-9]+([.][0-9]+)*' |
+    sed 's/^GLIBC_//' | sort -Vu | tail -1 || true)
+  [[ -n "$newest" ]] || continue
+  highest=$(printf '%s\n%s\n' 2.30 "$newest" | sort -V | tail -1)
+  [[ "$highest" == 2.30 ]] ||
+    fail "${candidate#$STAGE/} requires GLIBC_$newest (global maximum: GLIBC_2.30)"
+done < <(find "$STAGE" -type f -print0)
 
 check_armhf_glibc() {
   local elf=$1 maximum=$2 expected=$3 machine class flags newest highest
@@ -214,12 +227,12 @@ NX_UI="$STAGE/asm2_127/nxextract-ui"
 X86_LOADER="$STAGE/asm2_127/asm2_127_x86_box32"
 X5_BOX32="$STAGE/asm2_127/runtime/x5m/box64"
 X5_SDL2="$STAGE/asm2_127/runtime/x5m/native/libSDL2-2.0.so.0"
-check_armhf_glibc "$NEXTOS_BIN" 2.43 2.43
+check_armhf_glibc "$NEXTOS_BIN" 2.30 2.27
 check_armhf_glibc "$PORTMASTER_BIN" 2.30 2.27
 check_aarch64_glibc "$NX_UI" 2.30
-check_i386_glibc "$X86_LOADER" 2.38 2.38
-check_aarch64_glibc "$X5_BOX32" 2.43
-check_aarch64_glibc "$X5_SDL2" 2.34
+check_i386_glibc "$X86_LOADER" 2.30 2.17
+check_aarch64_glibc "$X5_BOX32" 2.30
+check_aarch64_glibc "$X5_SDL2" 2.30
 
 [[ "$(readelf -h "$X5_BOX32" |
   sed -n 's/^[[:space:]]*Type:[[:space:]]*//p')" == EXEC* ]] ||
@@ -239,7 +252,8 @@ check_aarch64_glibc "$X5_SDL2" 2.34
 i386_needed=$(readelf -d "$X86_LOADER" |
   sed -n 's/.*Shared library: \[\(.*\)\]/\1/p' | sort)
 i386_expected=$(printf '%s\n' \
-  libc.so.6 libm.so.6 libSDL2-2.0.so.0 | sort)
+  libc.so.6 libdl.so.2 libm.so.6 libpthread.so.0 \
+  libSDL2-2.0.so.0 | sort)
 [[ "$i386_needed" == "$i386_expected" ]] ||
   fail "i386 loader dependency set changed: ${i386_needed//$'\n'/, }"
 if readelf -d "$X86_LOADER" | grep -Eq '[(](RPATH|RUNPATH)[)]'; then
@@ -247,10 +261,10 @@ if readelf -d "$X86_LOADER" | grep -Eq '[(](RPATH|RUNPATH)[)]'; then
 fi
 
 [[ "$(sha256sum "$NEXTOS_BIN" | awk '{print $1}')" == \
-  3c43323ff73ad6a1772ff678f86add21095b09dbed4ca110ffddf397af44730d ]] ||
+  c81c8ab0c1a0b403ef82e9166997b204cdc81514199fdbb37c4c7885bd1bbfcc ]] ||
   fail "NextOS loader hash changed"
 [[ "$(sha256sum "$PORTMASTER_BIN" | awk '{print $1}')" == \
-  939c2d985581d31a02c4cfc83c3121999fb2588ea936cc2731be4ecf8427cf9d ]] ||
+  c81c8ab0c1a0b403ef82e9166997b204cdc81514199fdbb37c4c7885bd1bbfcc ]] ||
   fail "PortMaster loader hash changed"
 [[ "$(sha256sum "$NX_UI" | awk '{print $1}')" == \
   046afb583f5a211c946495e639409f81d9cfec706788eeccb7924b0e8e5a50b6 ]] ||
@@ -273,14 +287,14 @@ fi
   sed -n 's/^[[:space:]]*Build ID: //p')" == \
   "$BOX32_RELEASE_BUILD_ID" ]] ||
   fail "X5M Box32 Build ID changed"
-[[ "$(stat -c %s "$X5_SDL2")" == 467752 ]] ||
+[[ "$(stat -c %s "$X5_SDL2")" == 451256 ]] ||
   fail "X5M SDL2 compatibility library size changed"
 [[ "$(sha256sum "$X5_SDL2" | awk '{print $1}')" == \
-  eae4f55286eb9f888302878fa18d6a9d21f61bee9e1678d0991fa25f6ac207d5 ]] ||
+  798051928c553ee27fde9e2d555be4a9fe4ddcefbbb72f59252e427cbcb0d452 ]] ||
   fail "X5M SDL2 compatibility library hash changed"
 [[ "$(readelf -n "$X5_SDL2" |
   sed -n 's/^[[:space:]]*Build ID: //p')" == \
-  0dfade075d971c3e24a50fbb4545c37eb0794fed ]] ||
+  b67b112cd90b561ddb7059789417d588c2b29c45 ]] ||
   fail "X5M SDL2 compatibility library Build ID changed"
 
 bash -n "$STAGE/The Amazing Spider-Man 2.sh"
@@ -490,7 +504,7 @@ if game.findtext("image") != "./asm2_127/screenshot.png":
 
 with open(sys.argv[3], encoding="utf-8") as stream:
     provenance = json.load(stream)
-if provenance.get("package_version") != "1.1.7":
+if provenance.get("package_version") != "1.1.8":
     raise SystemExit("build provenance package version is invalid")
 with open(sys.argv[4], encoding="utf-8") as stream:
     package_version = stream.read().strip()
@@ -576,9 +590,9 @@ for relative, path, expected_size, expected_hash, expected_build_id in (
     (
         "runtime/x5m/native/libSDL2-2.0.so.0",
         sys.argv[9],
-        467752,
-        "eae4f55286eb9f888302878fa18d6a9d21f61bee9e1678d0991fa25f6ac207d5",
-        "0dfade075d971c3e24a50fbb4545c37eb0794fed",
+        451256,
+        "798051928c553ee27fde9e2d555be4a9fe4ddcefbbb72f59252e427cbcb0d452",
+        "b67b112cd90b561ddb7059789417d588c2b29c45",
     ),
 ):
     component = x5_runtime.get(relative, {})
@@ -614,10 +628,51 @@ for release_check in (
     "mali450_full_extraction_and_exact_package_smoke",
     "r36s_full_extraction_and_exact_package_smoke",
     "armhf_muos_lib32_audio_environment_contract",
+    "first_run_geometry_and_resume_contract",
+    "all_bundled_linux_elf_glibc_at_most_2_30",
     "owner_source_diagnostic_logging_contract",
 ):
     if validation.get(release_check) is not True:
         raise SystemExit(f"universal release check is not recorded: {release_check}")
+
+first_run = validation.get("arkos_rk3326_first_run_physical", {})
+if (
+    first_run.get("passed") is not True
+    or first_run.get("candidate") != "1.1.8"
+    or first_run.get("firmware") != "ArkOS 2.0"
+    or first_run.get("hardware") != "RK3326 handheld"
+    or first_run.get("drawable") != "640x480"
+    or first_run.get("sequence") != [
+        "legal-touch",
+        "update-log-hid",
+        "cloud-notice-touch",
+        "controls",
+        "loading",
+    ]
+    or first_run.get("tested_loader_sha256")
+    != provenance.get("loaders", {})
+    .get("bin/asm2-portmaster-armhf", {})
+    .get("sha256")
+    or first_run.get("nintendo_layout_trigger_normalized_to_logical_a")
+    is not True
+    or first_run.get("profile_reopen_without_interception") is not True
+    or first_run.get("clean_shutdown") is not True
+):
+    raise SystemExit("ArkOS first-run physical proof is incomplete")
+
+x5_low = validation.get("x5m_low_glibc_rebuild", {})
+if (
+    x5_low.get("box32_host_source_and_runtime_profile_match_physical_baseline")
+    is not True
+    or x5_low.get("i386_loader_changes_limited_to_shared_first_run_input_path")
+    is not True
+    or x5_low.get("two_clean_builds_byte_identical") is not True
+    or x5_low.get("box32_qemu_start") is not True
+    or x5_low.get("i386_guest_loader_qemu_box32_smoke") is not True
+    or x5_low.get("exact_rebuilt_bytes_physically_revalidated") is not False
+):
+    raise SystemExit("X5M low-glibc rebuild proof is incomplete")
+
 muos_audio = validation.get("muos_rg40xxh_armhf_audio_physical", {})
 if (
     muos_audio.get("passed") is not True

@@ -31,6 +31,10 @@ instead of showing the NXExtract progress UI. Extraction is still active: do
 not power off; wait for the game to start. Detailed progress remains in
 `debug.log`.
 
+On a clean profile, wait for each prompt and press one face/action button once
+on the legal screen, update log and cloud notice. The port applies the required
+touch/HID action for each screen and then restores normal input.
+
 ## Português
 
 Coloque um conjunto pertencente ao usuário e suportado em
@@ -62,3 +66,7 @@ No ROCKNIX/Wayland, a primeira preparação de mais de 1 GiB pode permanecer com
 a tela preta em vez de mostrar a interface de progresso do NXExtract. A
 extração continua ativa: não desligue; aguarde o jogo iniciar. O progresso
 detalhado permanece em `debug.log`.
+
+Em um perfil novo, aguarde cada aviso e pressione uma vez um botão frontal/de
+ação nos termos, no log de atualização e no aviso de nuvem. O port aplica o
+toque/HID exigido em cada tela e depois restaura o controle normal.

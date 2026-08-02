@@ -20,21 +20,24 @@ mode is excluded. On the real X5M it completed 11,034 gameplay frames and a
 and audio all passing.
 Box64 is under the MIT license preserved in `licenses/Box64-MIT.txt`.
 
-`native/libSDL2-2.0.so.0` is sdl2-compat 2.32.71
-development source from upstream commit
+`native/libSDL2-2.0.so.0` is sdl2-compat 2.32.71 development source from
+upstream commit
 `3e1fa90d301428ace65d5c8b371e93d2c59c3d65`, built as AArch64 against the
-NextOS system SDL3. The embedded string `SDL-2.32.71-gacc2cc1` is retained as
-a binary observation only: `acc2cc1` was the surrounding parent-tree revision
-seen by CMake and is not an sdl2-compat upstream commit. Its zlib license is
-preserved in `licenses/SDL2-compat-zlib.txt`.
+NextOS system SDL3 headers. Release 1.1.8 builds Box32, sdl2-compat and the
+i386 loader deterministically with Debian Buster and
+`SOURCE_DATE_EPOCH=1785628800`; their maximum GLIBC requirements are 2.28,
+2.17 and 2.17 respectively. The embedded SDL string is
+`SDL-2.32.71-no-vcs`, because the hermetic build intentionally omits unrelated
+parent-tree metadata. Its zlib license is preserved in
+`licenses/SDL2-compat-zlib.txt`.
 
 Exact public runtime files:
 
 | Path | Size | SHA-256 |
 | --- | ---: | --- |
-| `runtime/x5m/box64` | 25,720,640 | `48571604ccfb9399c6abba06349887d724dd23b5e8d80d4ac129c3acc39e405e` |
-| `runtime/x5m/native/libSDL2-2.0.so.0` | 467,752 | `eae4f55286eb9f888302878fa18d6a9d21f61bee9e1678d0991fa25f6ac207d5` |
-| `asm2_127_x86_box32` | 208,856 | `4c5b49ca7639ca7bbea4433793fb8defecd63c1ec304feb9703002a9000fc86d` |
+| `runtime/x5m/box64` | 25,622,728 | `d73aa019eefd4e553acda8ef7a126f88101cd1cdf46502e4060c192412c3f4dc` |
+| `runtime/x5m/native/libSDL2-2.0.so.0` | 451,256 | `798051928c553ee27fde9e2d555be4a9fe4ddcefbbb72f59252e427cbcb0d452` |
+| `asm2_127_x86_box32` | 196,508 | `201c2ef029451a005f047090db05f8f0d9f61b43eccf5309b936ba4306a7b110` |
 
 The game library `libtasm2-x86.so` is proprietary and is not included. The
 owner-data extractor creates it from the user's validated Android 1.2.7d APK.
@@ -43,7 +46,12 @@ The sdl2-compat bytes above remain frozen. The earlier i386 loader
 with SHA-256
 `fd6b48f4d89b1b9ff67af2cb34a67a4e61d7259eed34e52c781ff91a85481b8d`
 is explicitly rejected because its lazy resolver entered C with incorrect
-i386 stack alignment. The packaged `4c5b49...` loader corrects that ABI
-boundary and is valid only with the exact scoped profile above. Corresponding
-source integration, reinstall/update preservation and clean ARM regression
-remain gates for the universal release as a whole.
+i386 stack alignment. The packaged `201c2e...` loader retains the corrected
+ABI boundary in the low-glibc rebuild and is valid only with the exact scoped
+profile above. The Box32 host starts under AArch64 QEMU and executes the i386
+guest loader to its expected missing-owner-library boundary. The exact rebuilt
+X5M bytes have not yet had a new physical-device session. The Box32 host
+source, patch and runtime safety profile are unchanged from the physical
+gameplay baseline; the i386 loader changes only the shared first-run input
+path described by release 1.1.8 and reaches its expected owner-library boundary
+under the QEMU/Box32 smoke test.

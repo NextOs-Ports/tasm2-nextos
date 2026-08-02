@@ -2,7 +2,7 @@
 
 **Language / Idioma:** [English](#english) · [Português](#português)
 
-**Package release / Versão do pacote:** 1.1.7
+**Package release / Versão do pacote:** 1.1.8
 
 This is an independent clean-room compatibility loader. It does not distribute
 the APK, either native game library, OBB files, audio or other executable game
@@ -13,8 +13,8 @@ validated port.
 
 The loader preserves the original Android lifecycle on both supported routes:
 
-- the original ARMv7 `libtasm2.so` runs natively through separate current
-  NextOS and low-glibc PortMaster ARMHF loaders;
+- the original ARMv7 `libtasm2.so` runs natively through the public
+  low-glibc ARMHF loader on NextOS and PortMaster-class systems;
 - the physically validated AArch64 NextOS X5M route (`amlogic,s7d` /
   Mali-G310) runs the original Android x86 library through a scoped Box32 host
   and `sdl2-compat`. The packaged compatibility SDL is private to that game
@@ -33,10 +33,11 @@ controlled relaunch.
 
 ### Compatibility
 
-Physically validated:
+Physical route baselines:
 
-- NextOS R2 on Mali-450, using the current NextOS ARMHF build;
-- ArkOS on R36S / Mali-G31, using the low-glibc ARMHF build;
+- NextOS R2 on Mali-450, using the ARMHF runtime source retained here;
+- ArkOS on R36S / Mali-G31, including the exact public v1.1.8 ARMHF loader and
+  its complete clean-profile/reopen sequence;
 - muOS on RG 40XX-H, using the low-glibc ARMHF build and the firmware's
   32-bit ALSA, PipeWire and SPA modules. Gameplay, clear audio and clean
   shutdown passed with zero reported audio underruns, missing bytes or
@@ -50,6 +51,12 @@ Physically validated:
   controls and audio passing. This route requires the scoped Box64 profile
   `DYNAREC=1`, `BIGBLOCK=0`, `SAFEFLAGS=2`; experimental eager mode is not
   used.
+
+The v1.1.8 X5M components are deterministic low-glibc rebuilds. Their Box32
+host source, downstream patch and safety profile match that physical baseline;
+the exact rebuilt host starts under AArch64 QEMU and carries the i386 loader to
+its expected owner-library boundary. Those exact X5M bytes were not physically
+retested for this release.
 
 The ARMHF route is also structured for other PortMaster-class firmware that
 provides an ARM hard-float runtime, SDL2 and GLES2/GLES3. Those other firmware
@@ -98,8 +105,14 @@ validated runtime outputs, so saves, preferences and cache remain untouched.
 
 The first clean run follows the original sequence: legal disclaimer, update
 log, the native cloud-data notice, controls, progressive loading and gameplay.
-The cloud notice does not mean the game must download data. Once completed,
-those first-run screens are not repeated by the newly created profile.
+Release 1.1.8 routes one face-button action for each of the first three
+prompts: drawable-aware touch for legal, native HID for the update log, then a
+centered touch for the cloud notice. Near-square panels such as 720×720 use
+the photographed legal-button row instead of the old 4:3 coordinate. Progress
+is migrated from older markers, but only the game's own completed controls
+profile is final proof; interrupted setup is offered again after restart. The
+update-log step always emits the guest's logical A action, independent of
+Nintendo-style A/B face-button labels.
 
 ### Controls
 
@@ -116,16 +129,15 @@ those first-run screens are not repeated by the newly created profile.
 | Start | Pause |
 | Select + Start | Save and exit |
 
-On the very first run, the first face-button action is converted once into the
-touch gesture required by the original legal disclaimer. Later actions remain
-normal controller input.
+On a clean profile, wait for each prompt and press one face button once for
+legal, update log and cloud notice. Input then returns to normal handling.
 
 ## Português
 
 O loader preserva o ciclo de vida Android original nas duas rotas suportadas:
 
-- a `libtasm2.so` ARMv7 original executa nativamente por loaders separados para
-  o NextOS atual e para sistemas ARMHF PortMaster com glibc baixa;
+- a `libtasm2.so` ARMv7 original executa nativamente pelo loader público ARMHF
+  de glibc baixa no NextOS e em sistemas da classe PortMaster;
 - a rota NextOS AArch64 X5M validada fisicamente (`amlogic,s7d` / Mali-G310)
   executa a biblioteca Android x86 original pelo host Box32 específico e pelo
   `sdl2-compat`. A SDL de compatibilidade empacotada fica restrita ao processo
@@ -198,14 +210,18 @@ instalação funcional. Os arquivos-fonte do dono nunca são apagados. A
 atualização troca somente resultados de runtime validados, preservando saves,
 preferências e cache.
 
-Na primeira execução, a primeira ação de botão frontal vira uma única vez o
-toque exigido pelo disclaimer legal original. As ações seguintes permanecem
-controles normais.
-
 Uma instalação limpa segue a ordem original: termos, log de atualização, aviso
-nativo de dados na nuvem, controles, carregamento progressivo e gameplay. O
-aviso não significa que o jogo precise baixar seus dados e não reaparece após
-o perfil novo concluir esse fluxo.
+nativo de dados na nuvem, controles, carregamento progressivo e gameplay. Na
+versão 1.1.8, uma ação de botão frontal é tratada para cada um dos três avisos:
+toque ajustado ao drawable nos termos, HID nativo no log e toque centralizado
+no aviso de nuvem. Telas quase quadradas, como 720×720, usam a linha real do
+botão fotografado em vez da antiga coordenada 4:3. Marcadores antigos são
+migrados e uma sequência interrompida reaparece até o jogo criar o perfil de
+controles. No log de atualização, a ação enviada é sempre o A lógico do jogo,
+independentemente das etiquetas A/B do controle.
+
+Em um perfil novo, aguarde cada tela e pressione uma vez um botão frontal nos
+termos, no log e no aviso de nuvem. Depois, os controles voltam ao normal.
 
 ## Licenses / Licenças
 

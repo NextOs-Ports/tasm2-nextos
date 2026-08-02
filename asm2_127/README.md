@@ -3,7 +3,7 @@
 **Language / Idioma:** [English](#english) · [Português](#português)
 
 This directory targets the exact Android **1.2.7d native runtime** (`versionCode
-12723`, package `com.gameloft.android.ANMP.GloftASHM`). Release 1.1.7 accepts
+12723`, package `com.gameloft.android.ANMP.GloftASHM`). Release 1.1.8 accepts
 four audited Android 1.2.7d/1.2.8d owner containers that carry that same exact
 runtime. Other APK, native-library and expansion variants are not
 interchangeable.
@@ -15,7 +15,7 @@ supported self-contained 1.2.8d input has ARMv7 data only and is therefore
 limited to ARM32/multilib systems.
 
 Este diretório usa o **runtime nativo Android 1.2.7d** exato (`versionCode
-12723`, pacote `com.gameloft.android.ANMP.GloftASHM`). A release 1.1.7 aceita
+12723`, pacote `com.gameloft.android.ANMP.GloftASHM`). A release 1.1.8 aceita
 quatro contêineres Android 1.2.7d/1.2.8d auditados que carregam exatamente esse
 mesmo runtime. Outras variantes de APK, biblioteca nativa e expansões não podem
 ser misturadas.
@@ -45,6 +45,16 @@ original legal/terms, update-notice, native cloud-data notice and
 controller-title flow before entering the first level. The notice does not
 request a mandatory download and disappears after the profile completes the
 first-run sequence.
+
+Release 1.1.8 replaces the old one-shot legal conversion with a persisted
+three-stage recovery sequence: drawable-aware legal touch, native HID for the
+update log and a centered touch for either cloud notice variant. The 720×720
+layout uses the ACCEPT row measured from the reporter's screenshot. Legacy
+markers are migrated by drawable class, and only the game-owned
+`ud_Control.sav` makes completion permanent. The complete sequence and the
+next-launch no-interception path passed on physical ArkOS at 640×480. The
+update-log stage normalizes every face-button trigger to the guest's logical A,
+covering Nintendo-style controllers whose printed A/B labels differ from SDL.
 
 The first validation session created a checkpoint and exited cleanly after
 48,400 frames. Restarting with the same profile skipped terms, update and cloud
@@ -125,6 +135,7 @@ Their Android callbacks return safe offline values or no-op where appropriate.
 | Android paths absent | the engine uses `/sdcard`, app-private data, cache, APK and OBB paths | map Android storage prefixes into the local `gamefiles/` tree |
 | first-run settings lost after exit | Android `DataSharing` normally persists through Java | mutex-serialized bounded binary store with CRC, atomic temporary-file/rename commit, identical-value suppression and rollback on write failure |
 | first-run dialogs cannot both close | the offline data notice and `UI_FIRST_CHECK` use the same `ConfirmBoxSYS` in one frame, so the later callback replaces the visible dialog's callback | defer only the second builder, then restore the original version-checked guest instruction and let the game create it on the next frame |
+| square-panel legal ACCEPT does not react and later cloud notices can also trap input | the old conversion reused the 4:3 Y coordinate on 720×720 and permanently marked the attempt before the game proved that setup had completed | use layout-aware legal/cloud coordinates, native HID for the update-log step, migrate legacy markers and treat the game-owned controls profile as the only permanent completion proof |
 | live network stalls at 45% | the legacy EVE profile transaction does not complete even though its root endpoint is reachable | report no connection deterministically so the guest takes its complete native offline branch |
 | unsafe guest GL teardown after an active session | this engine walks stale process-lifetime objects in `GL2JNILib_destroy` | execute pause/options/input shutdown and let normal process exit reclaim guest-global objects |
 | extension entry points missing as link-time exports | Mali userspace exposes some GLES extensions only through the runtime resolver | extension lookup and GLES2-compatible platform shims |
@@ -203,10 +214,10 @@ Keyboard fallback:
 
 ### Hardware release validation
 
-Physical gameplay validation covers:
+Physical gameplay baselines cover:
 
-- NextOS/Mali-450 using the current NextOS ARMHF sysroot build;
-- ArkOS/R36S using the separately authorized low-glibc ARMHF build;
+- NextOS/Mali-450 using the ARMHF runtime source retained here;
+- ArkOS/R36S using the exact public v1.1.8 low-glibc ARMHF loader;
 - muOS/RG 40XX-H using the firmware's 32-bit ALSA, PipeWire and SPA modules;
 - ROCKNIX/RG-DS using Panfrost, Wayland, Mesa 26.1.2 and the scoped ALSA
   fallback; and
@@ -218,6 +229,12 @@ reopen, both with exit code zero. It created, updated and reloaded the save,
 kept audio free of callback failures and used the physical controller. The ARM
 targets likewise completed the native first-run sequence, progressive loading,
 gameplay and save reload.
+
+For v1.1.8, the X5M binaries were rebuilt twice byte-identically below the
+GLIBC 2.30 ceiling. The unchanged Box32 host source/patch/safety profile starts
+under AArch64 QEMU and the rebuilt i386 loader reaches its expected missing
+owner-library boundary there; those exact rebuilt X5M bytes were not rerun on
+the physical board.
 
 On ROCKNIX/RG-DS, PulseAudio failed before opening an audio device. The
 failure-triggered retry opened
@@ -325,24 +342,32 @@ normal proprietary outputs (`gamefiles/`, APK, OBB and shared libraries).
 
 ### Build and run
 
-`build.sh` expects the repository's NextOS ARMHF cross-toolchain and sysroot. It
-builds a stripped, dynamically linked ELF32 ARM executable (`Type: EXEC`, EABI5
-hard-float) linked against SDL2, EGL, GLES2, `dl`, `m` and pthread:
+Public ARMHF releases use the Debian Buster recipe and require at most
+GLIBC 2.30. It builds a stripped, dynamically linked ELF32 ARM executable
+(`Type: EXEC`, EABI5 hard-float) for both the NextOS and PortMaster package
+routes:
 
 ```bash
 cd ports/asm2_127
-./build.sh
-cp asm2_127 asm2_127-staging/
+TARGET_HEADER_SYSROOT=/path/to/header-sysroot
+docker run --rm -v "$PWD":/repo -v "$TARGET_HEADER_SYSROOT":/sysroot:ro \
+  debian:buster bash /repo/build_buster_arkos.sh
 ```
 
-`build_x86_box32.sh` builds the separate Linux i386 loader used only by the
-validated AArch64 X5M/Box32 route. `build_x86_capture_tests.sh` covers the lazy
-GL bridge, integer/float ABI alignment, capture and terminal process boundary:
+The X5M route uses the separate low-glibc i386 loader plus the source-built
+AArch64 Box32 host and `sdl2-compat`. The release scripts audit each output
+against the same GLIBC 2.30 ceiling:
 
 ```bash
-./build_x86_capture_tests.sh
-./build_x86_box32.sh
+docker run --rm -v "$PWD":/repo -v "$TARGET_HEADER_SYSROOT":/sysroot:ro \
+  debian:buster bash /repo/build_buster_x86_box32.sh
+../release-tools/build-box32-x5m.sh SOURCE BUILD
+../release-tools/build-sdl2-compat-x5m.sh SOURCE BUILD
 ```
+
+`build.sh` and `build_x86_box32.sh` remain developer recipes for explicitly
+current-sysroot, non-universal diagnostics; their outputs are not accepted as
+the sole binaries in the public package.
 
 Install `asm2_127-staging/` as `/storage/roms/ports/asm2_127/` and install
 `ASM2-1.2.7d.sh` one level above it. Run the launcher in the foreground so the
@@ -451,6 +476,16 @@ o jogo segue termos legais, aviso de atualização, aviso nativo de dados na
 nuvem, controles, carregamento progressivo e primeira fase. Esse aviso não
 exige download e deixa de aparecer depois que o perfil conclui o fluxo inicial.
 
+A versão 1.1.8 substitui a conversão legal única por uma recuperação persistida
+em três etapas: toque ajustado ao drawable nos termos, HID nativo no log de
+atualização e toque centralizado em qualquer variante do aviso de nuvem. O
+layout 720×720 usa a linha do botão ACCEPT medida na imagem enviada. Marcadores
+antigos são migrados por classe de drawable e somente o `ud_Control.sav` criado
+pelo jogo torna o fluxo permanentemente concluído. A sequência completa e o
+reinício sem interceptação passaram fisicamente no ArkOS em 640×480. A etapa do
+log normaliza qualquer botão frontal para o A lógico do jogo, inclusive em
+controles Nintendo cujas etiquetas A/B diferem do mapeamento SDL.
+
 A primeira sessão de validação criou um checkpoint e encerrou de forma limpa
 após 48.400 frames. O reinício com o mesmo perfil pulou termos, atualização e
 aviso de nuvem, voltou ao menu, recarregou a missão e rodou mais 9.777 frames.
@@ -530,6 +565,7 @@ quando apropriado.
 | paths Android inexistentes | a engine usa `/sdcard`, dados privados, cache, APK e OBB | mapear os prefixos Android para a árvore local `gamefiles/` |
 | preferências do primeiro início somem ao sair | no Android o `DataSharing` persiste via Java | store binário limitado e serializado por mutex, CRC, commit atômico por temporário/rename, supressão de valor idêntico e rollback em falha |
 | os dois diálogos iniciais não podem ser fechados | o aviso offline de dados e `UI_FIRST_CHECK` usam o mesmo `ConfirmBoxSYS` no mesmo frame, então o callback posterior substitui o callback do diálogo visível | adiar somente o segundo builder, restaurar a instrução original conferida por versão e deixar o jogo criá-lo no frame seguinte |
+| o ACCEPT legal não reage em telas quadradas e avisos de nuvem posteriores também podem prender o input | a conversão antiga reutilizava a coordenada Y de 4:3 em 720×720 e marcava a tentativa como permanente antes de o jogo comprovar a conclusão | usar coordenadas legais/nuvem por layout, HID nativo no log, migrar marcadores antigos e aceitar apenas o perfil de controles do jogo como prova permanente |
 | rede ativa trava em 45% | a transação de perfil EVE legada não conclui mesmo com a raiz do endpoint acessível | informar ausência de conexão de forma determinística para o guest seguir seu branch offline nativo completo |
 | teardown GL inseguro após sessão ativa | a engine percorre objetos de vida igual à do processo já obsoletos em `GL2JNILib_destroy` | executar pause/saída de opções/input e deixar a saída normal do processo recuperar os globais do guest |
 | entry points de extensões ausentes no link | o userspace Mali expõe certas extensões GLES apenas pelo resolvedor em runtime | busca de extensões e shims compatíveis com GLES2 |
@@ -608,10 +644,10 @@ Fallback de teclado:
 
 ### Validação física de release
 
-A validação física de gameplay cobre:
+A linha de base da validação física de gameplay cobre:
 
-- NextOS/Mali-450 com build ARMHF do sysroot NextOS atual;
-- ArkOS/R36S com a variante ARMHF de glibc baixa;
+- NextOS/Mali-450 com o mesmo fonte de runtime ARMHF preservado aqui;
+- ArkOS/R36S com o loader ARMHF público exato da v1.1.8;
 - muOS/RG 40XX-H com os módulos ALSA, PipeWire e SPA de 32 bits do firmware;
 - ROCKNIX/RG-DS com Panfrost, Wayland, Mesa 26.1.2 e fallback ALSA restrito; e
 - NextOS/X5M/Mali-G310 com loader i386 alinhado, Box32 e KMSDRM/GLES.
@@ -621,6 +657,12 @@ após reabrir, ambos com saída zero. O save foi criado, atualizado e recarregad
 o áudio não teve falhas de callback e o controle físico funcionou. Os alvos
 ARM também concluíram o fluxo inicial nativo, carregamento progressivo,
 gameplay e recarga do save.
+
+Na v1.1.8, os binários X5M foram recompilados duas vezes de forma idêntica
+abaixo do teto GLIBC 2.30. O mesmo fonte/patch/perfil seguro do host Box32 inicia
+sob QEMU AArch64 e o loader i386 recompilado chega ao limite esperado de
+biblioteca proprietária ausente; esses bytes X5M exatos não foram executados
+novamente na placa física.
 
 No ROCKNIX/RG-DS, o PulseAudio falhou antes de abrir um dispositivo. A nova
 tentativa abriu
@@ -729,25 +771,31 @@ proprietárias normais (`gamefiles/`, APK, OBB e bibliotecas compartilhadas).
 
 ### Compilar e rodar
 
-O `build.sh` espera o cross-toolchain ARMHF/sysroot NextOS usado pelo
-repositório. Ele produz um executável ELF32 ARM stripado e dinamicamente ligado
-(`Type: EXEC`, EABI5 hard-float), ligado a SDL2, EGL, GLES2, `dl`, `m` e
-pthread:
+Releases ARMHF públicas usam a receita Debian Buster e exigem no máximo
+GLIBC 2.30. Ela produz um ELF32 ARM stripado (`Type: EXEC`, EABI5 hard-float)
+para as rotas NextOS e PortMaster do pacote:
 
 ```bash
 cd ports/asm2_127
-./build.sh
-cp asm2_127 asm2_127-staging/
+TARGET_HEADER_SYSROOT=/caminho/do/sysroot-de-headers
+docker run --rm -v "$PWD":/repo -v "$TARGET_HEADER_SYSROOT":/sysroot:ro \
+  debian:buster bash /repo/build_buster_arkos.sh
 ```
 
-O `build_x86_box32.sh` gera o loader Linux i386 separado usado somente na rota
-X5M AArch64/Box32 validada. O `build_x86_capture_tests.sh` cobre o bridge GL
-lazy, alinhamento ABI de inteiros/floats, captura e limite de saída do processo:
+A rota X5M usa o loader i386 de glibc baixa, o Box32 AArch64 compilado de fonte
+e o `sdl2-compat`. Os scripts de release auditam todos contra o mesmo teto
+GLIBC 2.30:
 
 ```bash
-./build_x86_capture_tests.sh
-./build_x86_box32.sh
+docker run --rm -v "$PWD":/repo -v "$TARGET_HEADER_SYSROOT":/sysroot:ro \
+  debian:buster bash /repo/build_buster_x86_box32.sh
+../release-tools/build-box32-x5m.sh SOURCE BUILD
+../release-tools/build-sdl2-compat-x5m.sh SOURCE BUILD
 ```
+
+`build.sh` e `build_x86_box32.sh` permanecem receitas de desenvolvimento para
+diagnóstico em um sysroot atual e explicitamente não universal; essas saídas
+não são aceitas como os únicos binários do pacote público.
 
 Instale `asm2_127-staging/` como `/storage/roms/ports/asm2_127/` e instale
 `ASM2-1.2.7d.sh` um nível acima. Execute o launcher em foreground para que o

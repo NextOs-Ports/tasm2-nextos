@@ -13,6 +13,7 @@
 #include "android_callbacks.h"
 #include "audio_compat.h"
 #include "bionic_compat.h"
+#include "first_accept.h"
 #include "imports.h"
 #include "installer_compat.h"
 #include "input.h"
@@ -32,11 +33,22 @@
 #define ASM2_LIBRARY "libtasm2.so"
 #endif
 #define ASM2_HEAP_MB 64u
-#define ASM2_FIRST_ACCEPT_MARKER \
+#define ASM2_FIRST_RUN_TOUCH_STATE \
+  "Android/data/com.gameloft.android.ANMP.GloftASHM/files/save/" \
+  "asm2-first-run-touch-state-v3"
+#define ASM2_FIRST_ACCEPT_V2_MARKER \
+  "Android/data/com.gameloft.android.ANMP.GloftASHM/files/save/" \
+  ".asm2-legal-accepted-v2"
+#define ASM2_FIRST_ACCEPT_V1_MARKER \
   "Android/data/com.gameloft.android.ANMP.GloftASHM/files/save/" \
   ".asm2-legal-accepted-v1"
 #define ASM2_EXISTING_PROFILE_MARKER \
   "Android/data/com.gameloft.android.ANMP.GloftASHM/files/ud_Control.sav"
+
+enum asm2_first_accept_configuration {
+  ASM2_FIRST_ACCEPT_LEGACY_V1 = 4,
+  ASM2_FIRST_ACCEPT_LEGACY_V2 = 5,
+};
 
 typedef asm2_jint(ASM2_GUEST_PCS *asm2_jni_on_load_fn)(void *vm,
                                                         void *reserved);
@@ -309,32 +321,64 @@ static int ensure_storage_directories(const char *storage_root) {
   return 0;
 }
 
-static int configure_first_accept_touch(const char *storage_root,
-                                        char *marker, size_t marker_size) {
+static int configure_first_run_touch(const char *storage_root, char *state_path,
+                                     size_t state_path_size) {
+  char v1_marker[4096];
+  char v2_marker[4096];
   char existing_profile[4096];
-  if (join_path(marker, marker_size, storage_root,
-                ASM2_FIRST_ACCEPT_MARKER) != 0 ||
+  if (join_path(state_path, state_path_size, storage_root,
+                ASM2_FIRST_RUN_TOUCH_STATE) != 0 ||
+      join_path(v1_marker, sizeof(v1_marker), storage_root,
+                ASM2_FIRST_ACCEPT_V1_MARKER) != 0 ||
+      join_path(v2_marker, sizeof(v2_marker), storage_root,
+                ASM2_FIRST_ACCEPT_V2_MARKER) != 0 ||
       join_path(existing_profile, sizeof(existing_profile), storage_root,
                 ASM2_EXISTING_PROFILE_MARKER) != 0) {
-    fprintf(stderr, "ASM2_INPUT first-accept path too long\n");
-    marker[0] = '\0';
-    return 0;
+    fprintf(stderr, "ASM2_INPUT first-run touch path too long\n");
+    state_path[0] = '\0';
+    return ASM2_FIRST_RUN_TOUCH_COMPLETE;
   }
 
-  if (access(marker, F_OK) == 0) {
-    fprintf(stderr, "ASM2_INPUT first-accept already completed\n");
-    return 0;
-  }
-  /* R2 predates the explicit marker. A completed options profile proves that
-   * its legal screen was already accepted, so upgraded installs must not
-   * consume their first title/menu button as a touch. */
+  /* A completed controls profile is game-owned proof that every first-run
+   * modal has already been traversed. */
   if (access(existing_profile, F_OK) == 0) {
-    fprintf(stderr, "ASM2_INPUT first-accept legacy profile completed\n");
-    return 0;
+    fprintf(stderr, "ASM2_INPUT first-run touch profile completed\n");
+    return ASM2_FIRST_RUN_TOUCH_COMPLETE;
   }
 
-  fprintf(stderr, "ASM2_INPUT first-accept required\n");
-  return 1;
+  FILE *state = fopen(state_path, "rb");
+  if (state) {
+    int next_stage = -1;
+    int parsed = fscanf(state, "next=%d", &next_stage);
+    fclose(state);
+    if (parsed == 1 && next_stage >= ASM2_FIRST_RUN_TOUCH_LEGAL &&
+        next_stage <= ASM2_FIRST_RUN_TOUCH_COMPLETE) {
+      int resume_stage = asm2_first_run_resume_stage(next_stage);
+      if (resume_stage != next_stage) {
+        fprintf(stderr,
+                "ASM2_INPUT first-run touch attempts completed without "
+                "profile; restarting recovery sequence\n");
+      }
+      fprintf(stderr, "ASM2_INPUT first-run touch resume next=%d\n",
+              resume_stage);
+      return resume_stage;
+    }
+    fprintf(stderr,
+            "ASM2_INPUT first-run touch state invalid; restarting sequence\n");
+    return ASM2_FIRST_RUN_TOUCH_LEGAL;
+  }
+
+  if (access(v2_marker, F_OK) == 0) {
+    fprintf(stderr, "ASM2_INPUT first-accept v2 marker migration\n");
+    return ASM2_FIRST_ACCEPT_LEGACY_V2;
+  }
+  if (access(v1_marker, F_OK) == 0) {
+    fprintf(stderr, "ASM2_INPUT first-accept v1 marker migration\n");
+    return ASM2_FIRST_ACCEPT_LEGACY_V1;
+  }
+
+  fprintf(stderr, "ASM2_INPUT first-run touch required next=0\n");
+  return ASM2_FIRST_RUN_TOUCH_LEGAL;
 }
 
 static void initialize_jni(struct asm2_android_state *android_state) {
@@ -374,7 +418,7 @@ int main(int argc, char **argv) {
   const char *game_directory = argc > 1 ? argv[1] : ".";
   char library_path[4096];
   char storage_root[4096];
-  char first_accept_marker[4096];
+  char first_run_touch_state_path[4096];
   if (join_path(library_path, sizeof(library_path), game_directory,
                 ASM2_LIBRARY) != 0) {
     fprintf(stderr, "ASM2_F0_ERROR library path is too long\n");
@@ -388,9 +432,9 @@ int main(int argc, char **argv) {
   asm2_bionic_init(storage_root);
   if (ensure_storage_directories(storage_root) != 0)
     return 1;
-  int first_accept_required =
-      configure_first_accept_touch(storage_root, first_accept_marker,
-                                   sizeof(first_accept_marker));
+  int first_run_touch_configuration = configure_first_run_touch(
+      storage_root, first_run_touch_state_path,
+      sizeof(first_run_touch_state_path));
 
   const size_t heap_size = ASM2_HEAP_MB * 1024u * 1024u;
   void *heap = mmap(NULL, heap_size, PROT_READ | PROT_WRITE | PROT_EXEC,
@@ -764,6 +808,28 @@ int main(int argc, char **argv) {
                 video.width >= video.height ? video.width : video.height;
             int landscape_height =
                 video.width >= video.height ? video.height : video.width;
+            int first_run_touch_stage = first_run_touch_configuration;
+            if (first_run_touch_configuration ==
+                ASM2_FIRST_ACCEPT_LEGACY_V1) {
+              first_run_touch_stage =
+                  asm2_first_accept_legacy_marker_requires_retry(
+                      landscape_width, landscape_height)
+                      ? ASM2_FIRST_RUN_TOUCH_LEGAL
+                      : ASM2_FIRST_RUN_TOUCH_UPDATE_LOG;
+              fprintf(stderr,
+                      "ASM2_INPUT first-accept v1 migrated drawable=%dx%d "
+                      "next=%d\n",
+                      landscape_width, landscape_height,
+                      first_run_touch_stage);
+            } else if (first_run_touch_configuration ==
+                       ASM2_FIRST_ACCEPT_LEGACY_V2) {
+              first_run_touch_stage = ASM2_FIRST_RUN_TOUCH_UPDATE_LOG;
+              fprintf(stderr,
+                      "ASM2_INPUT first-accept v2 migrated drawable=%dx%d "
+                      "next=%d\n",
+                      landscape_width, landscape_height,
+                      first_run_touch_stage);
+            }
             if (native_state_changed)
               ((asm2_jni_boolean_fn)native_state_changed)(
                   asm2_jni_env(), gl2jni_class, 1);
@@ -815,7 +881,10 @@ int main(int argc, char **argv) {
               runtime_diagnostics_tick(rendered_frames);
               asm2_input_init(
                   &input, &callbacks, landscape_width, landscape_height,
-                  first_accept_required ? first_accept_marker : NULL);
+                  first_run_touch_stage < ASM2_FIRST_RUN_TOUCH_COMPLETE
+                      ? first_run_touch_state_path
+                      : NULL,
+                  first_run_touch_stage);
               input_initialized = 1;
               while (!exit_signal_requested &&
                      !asm2_android_lifecycle_requested(&android_state) &&
