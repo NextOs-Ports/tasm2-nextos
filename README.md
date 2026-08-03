@@ -9,6 +9,19 @@
 [NXExtract](https://github.com/NextOs-Ports/NXExtract) ·
 [Complete loader architecture / Arquitetura completa](asm2_127/README.md)
 
+## Support this work / Apoie este trabalho
+
+These ports take real time and real money to build. If you enjoy them:
+Fazer esses ports custa tempo e dinheiro de verdade. Se curte o resultado:
+
+- 💗 **GitHub Sponsors**: [github.com/sponsors/NextOs-Ports](https://github.com/sponsors/NextOs-Ports)
+- ☕ **Ko-fi** (PayPal/card / cartão): [ko-fi.com/nextos](https://ko-fi.com/nextos)
+- 🇧🇷 **PIX**: [livepix.gg/nextos](https://livepix.gg/nextos)
+
+## Community / Comunidade
+
+💬 **Discord:** [discord.gg/DHfY62eDNN](https://discord.gg/DHfY62eDNN)
+
 This is an independent clean-room compatibility loader. It does not distribute
 the APK, either native game library, OBB files, audio or other executable game
 data. Every image below is a real capture from a validated package run on the
@@ -304,12 +317,18 @@ desenvolvimento e reprodução do build.
 ## Support / Suporte
 
 Community support is handled on the
-[NextOS Discord](https://discord.com/invite/DHfY62eDNN). The same support link is also
+[NextOS Discord](https://discord.gg/DHfY62eDNN). The same support link is also
 available from the maintainer's GitHub profile/projects.
 
 O suporte da comunidade é feito no
-[Discord da NextOS](https://discord.com/invite/DHfY62eDNN). O mesmo link de suporte
+[Discord da NextOS](https://discord.gg/DHfY62eDNN). O mesmo link de suporte
 também está disponível no perfil e nos projetos GitHub do mantenedor.
+
+If you want to support the work itself / Se quiser apoiar o trabalho em si:
+
+- 💗 **GitHub Sponsors**: [github.com/sponsors/NextOs-Ports](https://github.com/sponsors/NextOs-Ports)
+- ☕ **Ko-fi** (PayPal/card / cartão): [ko-fi.com/nextos](https://ko-fi.com/nextos)
+- 🇧🇷 **PIX**: [livepix.gg/nextos](https://livepix.gg/nextos)
 
 ## Licenses / Licenças
 
